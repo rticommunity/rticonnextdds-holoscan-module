@@ -1,0 +1,16 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2026 Real-Time Innovations, Inc.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+module rti {
+    module holoscan {
+        module example {
+            struct Telemetry {
+                @key unsigned long sensor_id;
+                unsigned long sample_index;
+                double value;
+            };
+        };
+    };
+};

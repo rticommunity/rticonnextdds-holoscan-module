@@ -1,0 +1,113 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2026 Real-Time Innovations, Inc.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#pragma once
+
+#include <concepts>
+#include <chrono>
+#include <optional>
+#include <stdexcept>
+#include <thread>
+#include <type_traits>
+#include <utility>
+
+#include <dds/dds.hpp>
+
+#include <holoscan/core/execution_context.hpp>
+#include <holoscan/core/operator.hpp>
+#include <holoscan/core/operator_spec.hpp>
+#include <holoscan/core/temporal_contract.hpp>
+
+#include "rti/holoscan/dds/config.hpp"
+
+namespace rti::holoscan::dds {
+
+template <typename Adapter, typename DdsType>
+concept PublisherAdapter = requires(const typename Adapter::holoscan_type& value) {
+  { Adapter::to_dds(value) } -> std::same_as<DdsType>;
+};
+
+template <typename DdsType, typename Adapter>
+  requires PublisherAdapter<Adapter, DdsType>
+class PublisherOp final : public ::holoscan::Operator<> {
+ public:
+  using PortType = typename Adapter::holoscan_type;
+
+  explicit PublisherOp(const EndpointConfig& config) : config_(config) {}
+
+  void setup(::holoscan::OperatorSpec& spec) override {
+    spec.input(input, "input").queue_depth(32U);
+    spec.output(published, "published");
+  }
+
+  [[nodiscard]] ::holoscan::Contract contract() const override {
+    ::holoscan::Contract result;
+    result.trigger(::holoscan::OnEach{input});
+    return result;
+  }
+
+  void start() override {
+    if (config_.topic_name.empty()) {
+      throw std::invalid_argument{"DDS topic name must not be empty"};
+    }
+
+    const auto qos = detail::endpoint_qos(config_.qos_file, config_.qos_profile);
+    participant_.emplace(config_.domain_id, qos.participant);
+    publisher_.emplace(*participant_, qos.publisher);
+    topic_.emplace(*participant_, config_.topic_name, qos.topic);
+    writer_.emplace(*publisher_, *topic_, qos.writer);
+
+    using namespace std::chrono_literals;
+    for (std::uint32_t attempt = 0U; attempt < 100U; ++attempt) {
+      if (writer_->publication_matched_status().current_count() > 0) {
+        return;
+      }
+      std::this_thread::sleep_for(100ms);
+    }
+    throw std::runtime_error{"Timed out waiting for a compatible DDS reader"};
+  }
+
+  void stop() override {
+    if (writer_) {
+      try {
+        writer_->wait_for_acknowledgments(::dds::core::Duration::from_secs(5));
+      } catch (...) {
+        // Teardown must still release the remaining DDS entities. End-to-end
+        // delivery is asserted by the receiving application, not hidden here.
+      }
+    }
+    writer_.reset();
+    topic_.reset();
+    publisher_.reset();
+    participant_.reset();
+  }
+
+  [[nodiscard]] ::holoscan::expected<void, ::holoscan::Error> compute(
+      ::holoscan::ExecutionContext&) override {
+    auto value = input.receive_data();
+    if (!value) {
+      return ::holoscan::make_unexpected(std::move(value).error());
+    }
+    if (!writer_) {
+      return ::holoscan::make_unexpected(
+          ::holoscan::Error{::holoscan::ErrorCode::kFailure, "DDS writer is not started"});
+    }
+
+    writer_->write(Adapter::to_dds(*value));
+    return published.emit(std::move(*value));
+  }
+
+  ::holoscan::Input<PortType> input;
+  ::holoscan::Output<PortType> published;
+
+ private:
+  EndpointConfig config_;
+  std::optional<::dds::domain::DomainParticipant> participant_;
+  std::optional<::dds::pub::Publisher> publisher_;
+  std::optional<::dds::topic::Topic<DdsType>> topic_;
+  std::optional<::dds::pub::DataWriter<DdsType>> writer_;
+};
+
+}  // namespace rti::holoscan::dds
