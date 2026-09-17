@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 Real-Time Innovations, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-# EA1 development image. The default base is built from NVIDIA's private
+# EA2 development image. The default base is built from NVIDIA's private
 # Engineering Release source with its official `./run build` workflow.
-ARG BASE_IMAGE=holoscan-sdk-build-aarch64:5.0.0
+ARG BASE_IMAGE=holoscan-sdk-build-aarch64:v5.0.0-ea2
 FROM ${BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive

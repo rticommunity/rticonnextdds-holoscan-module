@@ -1,5 +1,5 @@
 /build/
+/build-*/
 /install/
 /.cache/
 /rti_license.dat
-

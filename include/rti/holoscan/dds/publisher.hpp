@@ -19,6 +19,7 @@
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/temporal_contract.hpp>
+#include <holoscan/core/domain/tensor.hpp>
 
 #include "rti/holoscan/dds/config.hpp"
 
@@ -38,8 +39,16 @@ class PublisherOp final : public ::holoscan::Operator<> {
   explicit PublisherOp(const EndpointConfig& config) : config_(config) {}
 
   void setup(::holoscan::OperatorSpec& spec) override {
-    spec.input(input, "input").queue_depth(32U);
-    spec.output(published, "published");
+    if constexpr (std::same_as<PortType, ::holoscan::Tensor>) {
+      spec.input(input, "input")
+          .queue_depth(32U)
+          .expects_tensor(Adapter::tensor_input_spec());
+      spec.output(published, "published")
+          .produces_tensor(Adapter::tensor_output_spec());
+    } else {
+      spec.input(input, "input").queue_depth(32U);
+      spec.output(published, "published");
+    }
   }
 
   [[nodiscard]] ::holoscan::Contract contract() const override {

@@ -24,6 +24,7 @@
 #include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/readiness_source.hpp>
 #include <holoscan/core/temporal_contract.hpp>
+#include <holoscan/core/domain/tensor.hpp>
 
 #include "rti/holoscan/dds/config.hpp"
 
@@ -43,7 +44,13 @@ class SubscriberOp final : public ::holoscan::Operator<> {
   explicit SubscriberOp(const EndpointConfig& config) : config_(config) {}
 
   void setup(::holoscan::OperatorSpec& spec) override {
-    spec.output(output, "output").max_emits_per_compute(32U);
+    if constexpr (std::same_as<PortType, ::holoscan::Tensor>) {
+      spec.output(output, "output")
+          .max_emits_per_compute(32U)
+          .produces_tensor(Adapter::tensor_output_spec());
+    } else {
+      spec.output(output, "output").max_emits_per_compute(32U);
+    }
     spec.notification_source(notification_, "dds-data")
         .capacity(1U)
         .sender_reference_capacity(1U);

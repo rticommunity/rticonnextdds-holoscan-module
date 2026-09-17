@@ -1,0 +1,22 @@
+// SPDX-FileCopyrightText: Copyright (c) 2026 Real-Time Innovations, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+namespace rti.holoscan.shapes;
+
+enum ShapeFillKind : byte {
+  Solid,
+  Transparent,
+  HorizontalHatch,
+  VerticalHatch
+}
+
+table Shape {
+  color:string (id: 0);
+  x:int (id: 1);
+  y:int (id: 2);
+  shape_size:int (id: 3);
+  fill_kind:ShapeFillKind = Solid (id: 4);
+  angle:float (id: 5);
+}
+
+root_type Shape;

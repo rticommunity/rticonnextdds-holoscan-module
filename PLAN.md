@@ -3,11 +3,12 @@
 ## Status
 
 This document defines the initial engineering plan for an RTI-owned Holoscan
-5 module. It is based on the Holoscan 5 EA1 source, documentation, examples,
-and the integration direction provided by NVIDIA.
+5 module. It was created from EA1 and has now been reviewed against the
+Holoscan 5 EA2 source, documentation, examples, and the integration direction
+provided by NVIDIA.
 
-EA1 is a moving pre-release baseline. The plan must be reviewed when EA2 is
-available and again against the Holoscan 5 GA SDK before a public release.
+EA2 is a moving pre-release baseline. The plan must be reviewed again against
+the Holoscan 5 GA SDK before a public release.
 No source, binary, documentation, or other artifact from the private Early
 Access distribution will be copied into this repository.
 
@@ -66,6 +67,28 @@ will contain:
 
 Completing this proof of concept will provide the evidence needed to define
 the production architecture and estimate the remaining work.
+
+## EA2 implementation status
+
+The EA2 prototype now adds a richer interoperability path:
+
+- `ShapeTypeExtended` is generated from the standard Connext
+  `ShapeType.idl` and used by the DDS reader and writer.
+- An EA2 custom FlatBuffers `ShapeT` is used on Holoscan graph ports.
+- A typed adapter maps every Shapes field between both owning types.
+- The subscriber uses a Connext `WaitSet` and Holoscan
+  `NotificationSource`, rather than polling from `compute()`.
+- Two independent Holoscan applications exchange and validate 20 Shapes
+  samples through DDS.
+- A parallel XCDR experiment carries the same Shapes sample as an owned
+  `Tensor<uint8_t>` and provides a Release-mode conversion benchmark.
+
+This resolves the EA2 feasibility question for structured payloads. It also
+confirms that the companion-schema approach involves a conversion/copy and
+that automating schema and adapter generation remains an important production
+design question. The XCDR path provides a generic opaque alternative, but its
+serialization, allocation, and loss of typed graph semantics make it a
+different use case rather than a universally better boundary.
 
 ## Scope
 
@@ -342,15 +365,17 @@ the module's own semantic version.
 
 ## Current constraints and risks
 
-1. **Payload compatibility:** EA1 rejects arbitrary generated C++ classes on
-   ports. This is the first technical gate, not an implementation detail.
-2. **Subscriber wakeup:** the supported event-driven bridge from DDS readiness
-   into the Holoscan scheduler is not yet confirmed.
+1. **Payload boundary:** EA2 supports custom FlatBuffers payloads, but generated
+   Connext owning types are not used directly as graph payloads. Applications
+   must currently choose a typed companion schema and adapter or an opaque XCDR
+   byte tensor.
+2. **Generated integration:** producing companion Holoscan schemas and adapters
+   automatically for arbitrary application IDLs remains future work.
 3. **API stability:** Holoscan 5 EA APIs and packaging conventions may change
    before GA.
 4. **Platform access:** validation must run on hardware supported by the
-   selected Holoscan 5 release. The available IGX Orin is not an EA1 runtime
-   acceptance platform.
+   selected Holoscan 5 release. The available IGX Orin cannot run the CUDA 13
+   HoloViz path required by EA2.
 5. **Packaging Connext:** public module packages cannot assume that RTI
    proprietary binaries or licenses may be redistributed.
 6. **Python timing:** production Python bindings depend on the GA binding
@@ -378,21 +403,19 @@ The module is complete when:
 
 ## Immediate next step
 
-The EA1 Phase 0 container, standalone CMake configuration, and combined
-Holoscan/Connext runtime smoke test are working on ARM64. Phase 1 has started:
-the `Telemetry` and `Command` IDLs are generated and compiled through the
-prototype `rti_holoscan_add_idl()` CMake helper, and a test exercises both
-generated types.
+The EA2 prototype builds and passes its seven containerized tests on ARM64. It
+now includes reusable publisher and subscriber operators, CMake-driven Connext
+type generation, event-driven subscriber activation, two application-owned IDL
+types, and independent publisher/subscriber applications.
 
-The EA1 proof of concept now includes templated publisher and subscriber
-operators, two generated application IDL types, two independent Holoscan
-applications, event-driven subscriber activation, and an end-to-end test of 20
-samples per type. The EA1 boundary is expressed through a small application
-adapter whose Holoscan side uses an admitted scalar payload.
+Two Shapes integrations exercise the same generated `ShapeTypeExtended` DDS
+type. The typed path maps every field to an EA2 custom FlatBuffers payload; the
+opaque path carries an encapsulated sample in a bounded host byte tensor. The
+decisions and tradeoffs are recorded in
+`docs/adr/0002-ea2-shapes-payload-boundary.md`.
 
-The provisional decision and its rejected EA1 alternatives are recorded in
-`docs/adr/0001-ea1-payload-boundary.md`.
-
-The next architecture gate is EA2 custom FlatBuffers payload and codec
-registration. Re-evaluate that mechanism before freezing the public adapter
-contract or claiming direct graph-port support for generated Connext types.
+The next step is to add a Shapes-to-HoloViz reference application and validate
+the complete visual path on a supported CUDA 13 system. That validation cannot
+be completed on the available IGX Orin and is waiting for temporary access to
+compatible hardware. The reusable DDS operators and current headless examples
+do not depend on that remaining visualization work.
