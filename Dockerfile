@@ -10,6 +10,7 @@ FROM ${BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG RTI_CONNEXT_VERSION=7.7.0
+ARG HOLOSCAN_CLI_VERSION=5.0.0a1
 
 RUN rm -f /etc/apt/sources.list.d/kitware.list \
     && apt-get update \
@@ -29,6 +30,13 @@ RUN rm -f /etc/apt/sources.list.d/kitware.list \
     && RTI_LICENSE_AGREEMENT_ACCEPTED=accepted apt-get install -y \
         "rti-connext-dds-${RTI_CONNEXT_VERSION}" \
     && rm -rf /var/lib/apt/lists/*
+
+# Keep the container self-contained for the Holoscan CLI workflow. The host
+# CLI creates this image and invokes `holoscan` again inside it. EA2 currently
+# publishes the CLI as a pre-release, so pin the exact EA2 version here.
+RUN python3 -m pip install --no-cache-dir --pre \
+        --extra-index-url https://pypi.nvidia.com \
+        "holoscan-cli==${HOLOSCAN_CLI_VERSION}"
 
 ARG RTI_CONNEXT_ARCH=armv8Linux4gcc8.5.0
 

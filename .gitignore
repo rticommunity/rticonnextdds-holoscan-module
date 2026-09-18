@@ -2,4 +2,7 @@
 /build-*/
 /install/
 /.cache/
+/.venv-holoscan-cli/
+/.rti/
+/rti_workspace/
 /rti_license.dat
