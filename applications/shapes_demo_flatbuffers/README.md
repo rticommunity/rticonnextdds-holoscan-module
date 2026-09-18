@@ -16,7 +16,7 @@ Holoscan ShapeT <-> ShapeAdapter <-> DDS ShapeTypeExtended
 ```
 
 This is the typed alternative to the
-[XCDR Tensor example](../shapes_xcdr/README.md).
+[XCDR Tensor example](../shapes_demo_xcdr/README.md).
 
 ## When to use this approach
 
@@ -77,8 +77,8 @@ Shapes Demo model.
 | `shape.fbs` | Holoscan EA2 FlatBuffers payload schema |
 | `shape_adapter.hpp` | Complete field mapping between `ShapeT` and `ShapeTypeExtended` |
 | `example_graph.hpp` | Typed source, sink, deterministic data, and validation |
-| `publisher.cpp` | `connext_shapes_publisher` application |
-| `subscriber.cpp` | `connext_shapes_subscriber` application |
+| `publisher.cpp` | `connext_shapes_demo_flatbuffers_publisher` application |
+| `subscriber.cpp` | `connext_shapes_demo_flatbuffers_subscriber` application |
 | `HoloscanConnextQos.xml` | Shapes-compatible DDS QoS |
 
 The root CMake build generates the DDS type from Connext's installed
@@ -86,7 +86,7 @@ The root CMake build generates the DDS type from Connext's installed
 
 ## Publisher application
 
-`connext_shapes_publisher` builds this graph:
+`connext_shapes_demo_flatbuffers_publisher` builds this graph:
 
 ```text
 ShapeSource<ShapeT> -> PublisherOp<ShapeTypeExtended, ShapeAdapter>
@@ -108,7 +108,7 @@ subscriber application confirms DDS delivery and field contents.
 
 ## Subscriber application
 
-`connext_shapes_subscriber` builds this graph:
+`connext_shapes_demo_flatbuffers_subscriber` builds this graph:
 
 ```text
 DDS Square -> SubscriberOp<ShapeTypeExtended, ShapeAdapter> -> ShapeSink<ShapeT>
@@ -136,9 +136,9 @@ docker run --rm --runtime=nvidia --network=host \
   -e RTI_LICENSE_FILE=/workspace/rticonnextdds-holoscan-module/build-ea2/rti_license.dat \
   -v "${HOLOSCAN_INSTALL}:/opt/holoscan:ro" \
   -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
-  -w /workspace/rticonnextdds-holoscan-module/build-ea2/examples/shapes_demo \
+  -w /workspace/rticonnextdds-holoscan-module/build-ea2/applications/shapes_demo_flatbuffers \
   rticonnextdds-holoscan-module:ea2 \
-  ../../connext_shapes_subscriber
+  ./connext_shapes_demo_flatbuffers_subscriber
 ```
 
 Then start the publisher in terminal 2:
@@ -149,9 +149,9 @@ docker run --rm --runtime=nvidia --network=host \
   -e RTI_LICENSE_FILE=/workspace/rticonnextdds-holoscan-module/build-ea2/rti_license.dat \
   -v "${HOLOSCAN_INSTALL}:/opt/holoscan:ro" \
   -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
-  -w /workspace/rticonnextdds-holoscan-module/build-ea2/examples/shapes_demo \
+  -w /workspace/rticonnextdds-holoscan-module/build-ea2/applications/shapes_demo_flatbuffers \
   rticonnextdds-holoscan-module:ea2 \
-  ../../connext_shapes_publisher
+  ./connext_shapes_demo_flatbuffers_publisher
 ```
 
 The subscriber prints each reconstructed shape. Success ends with:
@@ -171,7 +171,7 @@ docker run --rm --runtime=nvidia --network=host \
   -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
   -w /workspace/rticonnextdds-holoscan-module \
   rticonnextdds-holoscan-module:ea2 \
-  ctest --test-dir build-ea2 -R connext_shapes_integration --output-on-failure
+  ctest --test-dir build-ea2 -R connext_shapes_demo_flatbuffers_integration --output-on-failure
 ```
 
 The test launches both applications as separate processes and fails on a
@@ -184,7 +184,7 @@ RTI Shapes Demo. The easiest visual check is:
 
 1. Start RTI Shapes Demo as a reader on domain 0.
 2. Ensure it displays the `Square` topic.
-3. Run `connext_shapes_publisher` using the command above.
+3. Run `connext_shapes_demo_flatbuffers_publisher` using the command above.
 4. Observe the published shapes in Shapes Demo.
 
 The supplied Holoscan subscriber is an automated validator: it expects the

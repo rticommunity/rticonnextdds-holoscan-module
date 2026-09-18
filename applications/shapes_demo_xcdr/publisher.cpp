@@ -17,29 +17,33 @@
 #include "example_graph.hpp"
 #include "rti/holoscan/dds/config.hpp"
 #include "rti/holoscan/dds/publisher.hpp"
-#include "shape_adapter.hpp"
+#include "xcdr_graph.hpp"
 
 int run_publisher() {
   using Publisher = rti::holoscan::dds::PublisherOp<
-      ShapeTypeExtended, rti::holoscan::example::ShapeAdapter>;
+      ShapeTypeExtended, rti::holoscan::example::ShapeXcdrAdapter>;
+  using rti::holoscan::example::DdsShapeXcdrSink;
+  using rti::holoscan::example::DdsShapeXcdrSource;
   using rti::holoscan::example::ShapeObservation;
-  using rti::holoscan::example::ShapeSink;
-  using rti::holoscan::example::ShapeSource;
 
   ShapeObservation::reset();
-  holoscan::Graph graph{"connext-shapes-publisher"};
-  const rti::holoscan::dds::EndpointConfig config{
+  holoscan::Graph graph{"connext-shapes-xcdr-publisher"};
+  const rti::holoscan::dds::EndpointConfig base_config{
       .topic_name = "Square",
       .qos_profile = "HoloscanConnext::ShapesInterop",
   };
-  const auto source = graph.op<ShapeSource>("shape-source");
-  const auto publisher = graph.op<Publisher>("dds-shape-publisher", config);
-  const auto sink = graph.op<ShapeSink>("published-shape-observer");
+  const auto config = rti::holoscan::dds::with_environment_overrides(base_config);
+  const auto source = graph.op<DdsShapeXcdrSource>("dds-shape-xcdr-source");
+  const auto publisher = graph.op<Publisher>("dds-shape-xcdr-publisher", config);
+  const auto sink = graph.op<DdsShapeXcdrSink>("published-dds-shape-observer");
   graph.add_flow(source->output, publisher->input,
                  holoscan::ConnectionOptions{.queue_depth = 32U});
   graph.add_flow(publisher->published, sink->input,
                  holoscan::ConnectionOptions{.queue_depth = 32U});
-  graph.partition("shapes-publisher").add(source).add(publisher).add(sink);
+  graph.partition("shapes-xcdr-publisher")
+      .add(source)
+      .add(publisher)
+      .add(sink);
   graph.set_default_clock(graph.add_clock<holoscan::RealtimeClock>("clock"));
 
   const holoscan::ExecutionPlan plan = holoscan::compile(graph);
@@ -50,14 +54,14 @@ int run_publisher() {
   holoscan::RunSession session = holoscan::run_async(plan);
   const bool complete = ShapeObservation::wait_for_all(std::chrono::seconds{10});
   return rti::holoscan::example::finish_shapes_run(
-      session, complete, "DDS Shapes publisher sent 20 ShapeTypeExtended samples");
+      session, complete, "DDS XCDR publisher sent 20 ShapeTypeExtended samples");
 }
 
 int main() {
   try {
     return run_publisher();
   } catch (const std::exception& error) {
-    std::cerr << "DDS Shapes publisher failed: " << error.what() << '\n';
+    std::cerr << "DDS XCDR publisher failed: " << error.what() << '\n';
     return 2;
   }
 }

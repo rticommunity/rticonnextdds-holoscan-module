@@ -6,9 +6,12 @@
 #pragma once
 
 #include <atomic>
+#include <climits>
 #include <chrono>
 #include <concepts>
 #include <condition_variable>
+#include <exception>
+#include <string>
 #include <mutex>
 #include <optional>
 #include <stdexcept>
@@ -46,10 +49,10 @@ class SubscriberOp final : public ::holoscan::Operator<> {
   void setup(::holoscan::OperatorSpec& spec) override {
     if constexpr (std::same_as<PortType, ::holoscan::Tensor>) {
       spec.output(output, "output")
-          .max_emits_per_compute(32U)
+          .max_emits_per_compute(config_.max_samples_per_activation)
           .produces_tensor(Adapter::tensor_output_spec());
     } else {
-      spec.output(output, "output").max_emits_per_compute(32U);
+      spec.output(output, "output").max_emits_per_compute(config_.max_samples_per_activation);
     }
     spec.notification_source(notification_, "dds-data")
         .capacity(1U)
@@ -70,6 +73,10 @@ class SubscriberOp final : public ::holoscan::Operator<> {
     if (!notification_sender_) {
       throw std::runtime_error{"Holoscan notification sender was not armed"};
     }
+    if (config_.max_samples_per_activation == 0U ||
+        config_.max_samples_per_activation > static_cast<std::uint32_t>(INT32_MAX)) {
+      throw std::invalid_argument{"max_samples_per_activation must fit a positive int32"};
+    }
 
     const auto qos = detail::endpoint_qos(config_.qos_file, config_.qos_profile);
     participant_.emplace(config_.domain_id, qos.participant);
@@ -87,6 +94,10 @@ class SubscriberOp final : public ::holoscan::Operator<> {
     stop_requested_.store(false, std::memory_order_release);
     notification_outstanding_ = false;
     worker_failed_.store(false, std::memory_order_release);
+    {
+      const std::lock_guard lock{worker_error_mutex_};
+      worker_error_message_.clear();
+    }
     worker_ = std::thread([this] { wait_for_data(); });
   }
 
@@ -127,8 +138,14 @@ class SubscriberOp final : public ::holoscan::Operator<> {
 
     if (worker_failed_.load(std::memory_order_acquire)) {
       retire_notification();
+      std::string message;
+      {
+        const std::lock_guard lock{worker_error_mutex_};
+        message = worker_error_message_;
+      }
       return ::holoscan::make_unexpected(
-          ::holoscan::Error{::holoscan::ErrorCode::kFailure, "DDS WaitSet worker failed"});
+          ::holoscan::Error{::holoscan::ErrorCode::kFailure,
+                             message.empty() ? "DDS WaitSet worker failed" : message});
     }
     if (!reader_) {
       retire_notification();
@@ -136,16 +153,28 @@ class SubscriberOp final : public ::holoscan::Operator<> {
           ::holoscan::Error{::holoscan::ErrorCode::kFailure, "DDS reader is not started"});
     }
 
-    auto samples = reader_->take();
-    for (const auto& sample : samples) {
-      if (!sample.info().valid()) {
-        continue;
+    try {
+      auto samples = reader_->select()
+                         .max_samples(static_cast<int32_t>(config_.max_samples_per_activation))
+                         .take();
+      for (const auto& sample : samples) {
+        if (!sample.info().valid()) {
+          continue;
+        }
+        auto emitted = output.emit(Adapter::from_dds(sample.data()));
+        if (!emitted) {
+          retire_notification();
+          return ::holoscan::make_unexpected(std::move(emitted).error());
+        }
       }
-      auto emitted = output.emit(Adapter::from_dds(sample.data()));
-      if (!emitted) {
-        retire_notification();
-        return ::holoscan::make_unexpected(std::move(emitted).error());
-      }
+    } catch (const std::exception& error) {
+      retire_notification();
+      return ::holoscan::make_unexpected(::holoscan::Error{
+          ::holoscan::ErrorCode::kFailure, std::string{"DDS subscribe failed: "} + error.what()});
+    } catch (...) {
+      retire_notification();
+      return ::holoscan::make_unexpected(
+          ::holoscan::Error{::holoscan::ErrorCode::kFailure, "DDS subscribe failed"});
     }
 
     retire_notification();
@@ -165,7 +194,6 @@ class SubscriberOp final : public ::holoscan::Operator<> {
   }
 
   void wait_for_data() noexcept {
-    using namespace std::chrono_literals;
     try {
       while (!stop_requested_.load(std::memory_order_acquire)) {
         const auto active_conditions = waitset_.wait();
@@ -198,7 +226,7 @@ class SubscriberOp final : public ::holoscan::Operator<> {
               posted.error().code != ::holoscan::ErrorCode::kBackpressured) {
             throw std::runtime_error{"Holoscan notification source closed unexpectedly"};
           }
-          std::this_thread::sleep_for(1ms);
+          std::this_thread::sleep_for(config_.notification_retry_interval);
         }
 
         std::unique_lock lock{notification_mutex_};
@@ -207,7 +235,20 @@ class SubscriberOp final : public ::holoscan::Operator<> {
                  stop_requested_.load(std::memory_order_acquire);
         });
       }
+    } catch (const std::exception& error) {
+      {
+        const std::lock_guard lock{worker_error_mutex_};
+        worker_error_message_ = std::string{"DDS WaitSet worker failed: "} + error.what();
+      }
+      worker_failed_.store(true, std::memory_order_release);
+      if (notification_sender_) {
+        (void)notification_sender_->post();
+      }
     } catch (...) {
+      {
+        const std::lock_guard lock{worker_error_mutex_};
+        worker_error_message_ = "DDS WaitSet worker failed";
+      }
       worker_failed_.store(true, std::memory_order_release);
       if (notification_sender_) {
         (void)notification_sender_->post();
@@ -228,6 +269,8 @@ class SubscriberOp final : public ::holoscan::Operator<> {
   std::thread worker_;
   std::atomic<bool> stop_requested_{false};
   std::atomic<bool> worker_failed_{false};
+  std::mutex worker_error_mutex_;
+  std::string worker_error_message_;
   std::mutex notification_mutex_;
   std::condition_variable drained_;
   bool notification_outstanding_{false};

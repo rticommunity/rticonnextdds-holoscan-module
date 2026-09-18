@@ -25,7 +25,7 @@ DDS -> ShapeTypeExtended -> XCDR Tensor -> Application ShapeTypeExtended
 ```
 
 This is the opaque alternative to the
-[typed Holoscan Shapes example](../shapes_demo/README.md).
+[typed Holoscan Shapes example](../shapes_demo_flatbuffers/README.md).
 
 ## When to use this approach
 
@@ -102,8 +102,8 @@ conversion is at the Holoscan graph boundary.
 |---|---|
 | `shape_xcdr.hpp` | XCDR serialization, deserialization, Tensor ownership, and Tensor contracts |
 | `xcdr_graph.hpp` | Application source and sink that work with `ShapeTypeExtended` |
-| `publisher.cpp` | `connext_shapes_xcdr_publisher` application |
-| `subscriber.cpp` | `connext_shapes_xcdr_subscriber` application |
+| `publisher.cpp` | `connext_shapes_demo_xcdr_publisher` application |
+| `subscriber.cpp` | `connext_shapes_demo_xcdr_subscriber` application |
 | `tests/shapes_conversion_benchmark.cpp` | Typed versus XCDR CPU conversion benchmark |
 
 The generated `ShapeTypeExtended` and the XML QoS file are shared with the
@@ -111,7 +111,7 @@ typed Shapes example.
 
 ## Publisher application
 
-`connext_shapes_xcdr_publisher` builds this graph:
+`connext_shapes_demo_xcdr_publisher` builds this graph:
 
 ```text
 DdsShapeXcdrSource -> Tensor<uint8_t> -> PublisherOp -> Tensor<uint8_t>
@@ -134,7 +134,7 @@ remain centered on generated DDS samples.
 
 ## Subscriber application
 
-`connext_shapes_xcdr_subscriber` builds this graph:
+`connext_shapes_demo_xcdr_subscriber` builds this graph:
 
 ```text
 DDS Square -> SubscriberOp -> Tensor<uint8_t> -> DdsShapeXcdrSink
@@ -161,9 +161,9 @@ docker run --rm --runtime=nvidia --network=host \
   -e RTI_LICENSE_FILE=/workspace/rticonnextdds-holoscan-module/build-ea2/rti_license.dat \
   -v "${HOLOSCAN_INSTALL}:/opt/holoscan:ro" \
   -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
-  -w /workspace/rticonnextdds-holoscan-module/build-ea2/examples/shapes_xcdr \
+  -w /workspace/rticonnextdds-holoscan-module/build-ea2/applications/shapes_demo_xcdr \
   rticonnextdds-holoscan-module:ea2 \
-  ../../connext_shapes_xcdr_subscriber
+  ./connext_shapes_demo_xcdr_subscriber
 ```
 
 Then start the publisher in terminal 2:
@@ -174,9 +174,9 @@ docker run --rm --runtime=nvidia --network=host \
   -e RTI_LICENSE_FILE=/workspace/rticonnextdds-holoscan-module/build-ea2/rti_license.dat \
   -v "${HOLOSCAN_INSTALL}:/opt/holoscan:ro" \
   -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
-  -w /workspace/rticonnextdds-holoscan-module/build-ea2/examples/shapes_xcdr \
+  -w /workspace/rticonnextdds-holoscan-module/build-ea2/applications/shapes_demo_xcdr \
   rticonnextdds-holoscan-module:ea2 \
-  ../../connext_shapes_xcdr_publisher
+  ./connext_shapes_demo_xcdr_publisher
 ```
 
 Success ends with:
@@ -196,7 +196,7 @@ docker run --rm --runtime=nvidia --network=host \
   -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
   -w /workspace/rticonnextdds-holoscan-module \
   rticonnextdds-holoscan-module:ea2 \
-  ctest --test-dir build-ea2 -R connext_shapes_xcdr_integration --output-on-failure
+  ctest --test-dir build-ea2 -R connext_shapes_demo_xcdr_integration --output-on-failure
 ```
 
 The test fails if either application cannot compile its graph, communicate

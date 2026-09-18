@@ -1,0 +1,45 @@
+{
+  "$schema": "urn:holohub:application:v1",
+  "application": {
+    "name": "Connext DDS Shapes Demo with FlatBuffers",
+    "description": "Holoscan Shapes application using generated DDS types and a FlatBuffers payload boundary",
+    "authors": [
+      {
+        "name": "RTI Real-Time Innovations",
+        "affiliation": "RTI Real-Time Innovations"
+      }
+    ],
+    "language": "C++",
+    "version": "0.1.0",
+    "changelog": {
+      "0.1.0": "Initial Holoscan 5 EA2 Shapes FlatBuffers example"
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "5.0.0",
+      "tested_versions": ["5.0.0"]
+    },
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["DDS", "RTI Connext", "FlatBuffers", "Shapes Demo"],
+    "ranking": 2,
+    "requirements": {
+      "operators": [{"name": "dds", "version": "0.1.0"}]
+    },
+    "default_mode": "publisher",
+    "modes": {
+      "publisher": {
+        "description": "Run the Shapes FlatBuffers publisher",
+        "run": {
+          "command": "<holohub_app_bin>/connext_shapes_demo_flatbuffers_publisher",
+          "workdir": "holohub_app_bin"
+        }
+      },
+      "subscriber": {
+        "description": "Run the Shapes FlatBuffers subscriber",
+        "run": {
+          "command": "<holohub_app_bin>/connext_shapes_demo_flatbuffers_subscriber",
+          "workdir": "holohub_app_bin"
+        }
+      }
+    }
+  }
+}

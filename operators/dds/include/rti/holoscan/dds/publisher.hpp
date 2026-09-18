@@ -7,6 +7,7 @@
 
 #include <concepts>
 #include <chrono>
+#include <cstdint>
 #include <optional>
 #include <stdexcept>
 #include <thread>
@@ -68,12 +69,19 @@ class PublisherOp final : public ::holoscan::Operator<> {
     topic_.emplace(*participant_, config_.topic_name, qos.topic);
     writer_.emplace(*publisher_, *topic_, qos.writer);
 
-    using namespace std::chrono_literals;
-    for (std::uint32_t attempt = 0U; attempt < 100U; ++attempt) {
+    if (!config_.wait_for_reader) {
+      return;
+    }
+    if (config_.reader_match_timeout.count() <= 0 ||
+        config_.reader_match_poll_interval.count() <= 0) {
+      throw std::invalid_argument{"DDS reader match timeouts must be positive"};
+    }
+    const auto deadline = std::chrono::steady_clock::now() + config_.reader_match_timeout;
+    while (std::chrono::steady_clock::now() < deadline) {
       if (writer_->publication_matched_status().current_count() > 0) {
         return;
       }
-      std::this_thread::sleep_for(100ms);
+      std::this_thread::sleep_for(config_.reader_match_poll_interval);
     }
     throw std::runtime_error{"Timed out waiting for a compatible DDS reader"};
   }
@@ -81,7 +89,8 @@ class PublisherOp final : public ::holoscan::Operator<> {
   void stop() override {
     if (writer_) {
       try {
-        writer_->wait_for_acknowledgments(::dds::core::Duration::from_secs(5));
+        writer_->wait_for_acknowledgments(
+            ::dds::core::Duration::from_secs(config_.acknowledgment_timeout.count() / 1000.0));
       } catch (...) {
         // Teardown must still release the remaining DDS entities. End-to-end
         // delivery is asserted by the receiving application, not hidden here.
@@ -104,8 +113,16 @@ class PublisherOp final : public ::holoscan::Operator<> {
           ::holoscan::Error{::holoscan::ErrorCode::kFailure, "DDS writer is not started"});
     }
 
-    writer_->write(Adapter::to_dds(*value));
-    return published.emit(std::move(*value));
+    try {
+      writer_->write(Adapter::to_dds(*value));
+      return published.emit(std::move(*value));
+    } catch (const std::exception& error) {
+      return ::holoscan::make_unexpected(::holoscan::Error{
+          ::holoscan::ErrorCode::kFailure, std::string{"DDS publish failed: "} + error.what()});
+    } catch (...) {
+      return ::holoscan::make_unexpected(
+          ::holoscan::Error{::holoscan::ErrorCode::kFailure, "DDS publish failed"});
+    }
   }
 
   ::holoscan::Input<PortType> input;
