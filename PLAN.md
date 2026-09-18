@@ -327,7 +327,7 @@ pass the same two-IDL communication contract.
 - Holoscan SDK 5 is a required external dependency.
 - RTI Connext DDS 7.7.0 C++ libraries and `rtiddsgen` are required for the
   initial implementation.
-- The module source can be Apache-2.0, subject to RTI legal review.
+- The module source uses the RTI examples license in `LICENSE`.
 - Connext binaries, Debian packages, and licenses are not part of this source
   repository.
 - A valid Connext license is supplied to development and test containers as a

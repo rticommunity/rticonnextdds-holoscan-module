@@ -10,7 +10,7 @@
         "affiliation": "RTI Real-Time Innovations"
       }
     ],
-    "license": "Apache-2.0",
+    "license": "RTI License (custom, see LICENSE)",
     "language": ["C++"],
     "namespace": {
       "cpp": "rti::holoscan::dds"

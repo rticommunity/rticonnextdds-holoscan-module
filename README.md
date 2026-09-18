@@ -202,8 +202,9 @@ test, and runtime dependencies are provided inside Docker.
 
 ## RTI Connext license
 
-The Apache-2.0 source code in this repository does not include an RTI Connext
-runtime license. Request and download an activation key from the
+The source code in this repository is distributed under the RTI license in
+`LICENSE` and does not include an RTI Connext runtime license. Request and
+download an activation key from the
 [RTI Connext license page](https://content.rti.com/l/983311/2025-07-25/q6729c).
 
 Keep the resulting `rti_license.dat` outside the container image and source
