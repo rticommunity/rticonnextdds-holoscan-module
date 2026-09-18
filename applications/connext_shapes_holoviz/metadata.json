@@ -1,0 +1,9 @@
+{
+  "$schema": "holoscan/application/v2",
+  "application": {
+    "name": "connext_shapes_holoviz",
+    "language": "C++",
+    "description": "Holoscan-generated Shapes visualized locally and exchanged with RTI Connext DDS.",
+    "holoscan_sdk": {"minimum_required_version": "5.0.0"}
+  }
+}

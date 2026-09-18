@@ -26,6 +26,8 @@ RUN rm -f /etc/apt/sources.list.d/kitware.list \
         ca-certificates \
         curl \
         openjdk-21-jre-headless \
+        xvfb \
+        imagemagick \
     && curl -fsSL -o /usr/share/keyrings/rti-official-archive.gpg \
         https://packages.rti.com/deb/official/repo.key \
     && printf -- "deb [arch=%s signed-by=%s] %s %s main\n" \

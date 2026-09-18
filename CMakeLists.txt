@@ -39,6 +39,7 @@ target_link_libraries(rti_connext_dds_operators INTERFACE
 
 add_subdirectory(applications/shapes_demo_flatbuffers)
 add_subdirectory(applications/shapes_demo_xcdr)
+add_subdirectory(applications/connext_shapes_holoviz)
 if(BUILD_TESTING)
   add_subdirectory(tests)
 endif()

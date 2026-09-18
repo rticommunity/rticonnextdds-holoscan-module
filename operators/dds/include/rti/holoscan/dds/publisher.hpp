@@ -74,6 +74,7 @@ class PublisherOp final : public ::holoscan::Operator<> {
     publisher_.emplace(*participant_, qos.publisher);
     topic_.emplace(*participant_, config_.topic_name, qos.topic);
     writer_.emplace(*publisher_, *topic_, qos.writer);
+    detail::register_process_local_publication(config_, writer_->instance_handle());
 
     if (!config_.wait_for_reader) {
       return;
@@ -101,6 +102,9 @@ class PublisherOp final : public ::holoscan::Operator<> {
         // Teardown must still release the remaining DDS entities. End-to-end
         // delivery is asserted by the receiving application, not hidden here.
       }
+    }
+    if (writer_) {
+      detail::unregister_process_local_publication(config_, writer_->instance_handle());
     }
     writer_.reset();
     topic_.reset();

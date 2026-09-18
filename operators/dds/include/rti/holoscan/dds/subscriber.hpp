@@ -86,6 +86,8 @@ class SubscriberOp final : public ::holoscan::Operator<> {
 
     const auto qos = detail::endpoint_qos(config_.qos_file, config_.qos_profile);
     participant_.emplace(config_.domain_id, qos.participant);
+    detail::ignore_process_local_publications(config_, *participant_);
+    detail::ignore_process_local_publications(config_, *participant_);
     subscriber_.emplace(*participant_, qos.subscriber);
     topic_.emplace(*participant_, config_.topic_name, qos.topic);
     reader_.emplace(*subscriber_, *topic_, qos.reader);
@@ -167,6 +169,9 @@ class SubscriberOp final : public ::holoscan::Operator<> {
         if (!sample.info().valid()) {
           continue;
         }
+        if (detail::is_process_local_publication(config_, sample.info().publication_handle())) {
+          continue;
+        }
         auto emitted = output.emit(Adapter::from_dds(sample.data()));
         if (!emitted) {
           retire_notification();
@@ -202,6 +207,10 @@ class SubscriberOp final : public ::holoscan::Operator<> {
   void wait_for_data() noexcept {
     try {
       while (!stop_requested_.load(std::memory_order_acquire)) {
+        if (participant_) detail::ignore_process_local_publications(config_, *participant_);
+        if (participant_) {
+          detail::ignore_process_local_publications(config_, *participant_);
+        }
         const auto active_conditions = waitset_.wait();
         if (stop_requested_.load(std::memory_order_acquire)) {
           break;

@@ -42,6 +42,9 @@ set_tests_properties(connext_shapes_conversion_benchmark_smoke PROPERTIES
 
 set(shapes_demo_flatbuffers_example_dir "${CMAKE_BINARY_DIR}/applications/shapes_demo_flatbuffers")
 set(shapes_demo_xcdr_example_dir "${CMAKE_BINARY_DIR}/applications/shapes_demo_xcdr")
+set(connext_shapes_holoviz_test_image "rticonnextdds-holoscan-module-rticonnextdds-holoscan-module:ea-2"
+  CACHE STRING "Container image used by the isolated HoloViz visual CTest")
+set(connext_shapes_holoviz_capture_dir "build/rticonnextdds-holoscan-module/test-artifacts/connext_shapes_holoviz")
 
 function(add_dds_pair_test name subscriber publisher pattern domain working_directory)
   add_test(NAME "${name}" COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/run_dds_pair.sh"
@@ -59,3 +62,11 @@ add_dds_pair_test(connext_shapes_demo_xcdr_integration
   "$<TARGET_FILE:connext_shapes_demo_xcdr_subscriber>" "$<TARGET_FILE:connext_shapes_demo_xcdr_publisher>"
   "DDS XCDR subscriber received 20 ShapeTypeExtended samples" 12
   "${shapes_demo_xcdr_example_dir}")
+
+add_test(NAME connext_shapes_holoviz_visual_integration
+  COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/run_connext_shapes_holoviz_visual.sh"
+    "${connext_shapes_holoviz_test_image}" "${connext_shapes_holoviz_capture_dir}")
+set_tests_properties(connext_shapes_holoviz_visual_integration PROPERTIES
+  PASS_REGULAR_EXPRESSION "connext_shapes_holoviz visual DDS test passed"
+  TIMEOUT 45
+  LABELS "integration;visual;docker")
