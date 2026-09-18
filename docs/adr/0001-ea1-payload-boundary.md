@@ -23,8 +23,9 @@ The operators are templates over two application-provided types:
 - An adapter that declares an EA1-admitted `holoscan_type` and converts between
   that graph payload and the generated DDS type.
 
-The example uses `std::uint32_t` as its Holoscan payload. Its `TelemetryAdapter`
-and `CommandAdapter` construct and validate the complete generated DDS samples.
+The examples use Holoscan schema payloads as their graph boundary. Their Shapes
+adapters construct and validate the complete generated DDS samples while the
+XCDR adapter exposes the serialized sample as a Tensor.
 The generated DDS types never cross the EA1 graph-port boundary.
 
 The subscriber uses a Connext `WaitSet` on `DATA_AVAILABLE` and posts a bounded

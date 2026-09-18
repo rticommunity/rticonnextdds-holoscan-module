@@ -58,7 +58,7 @@ will contain:
 
 - A Holoscan 5 module built as a standalone CMake project.
 - Reusable Connext publisher and subscriber operators.
-- Two application-owned IDL types, `Telemetry` and `Command`.
+- The RTI Shapes `ShapeTypeExtended` IDL, exercised through typed and XCDR paths.
 - CMake-driven Connext C++ type generation with `rtiddsgen`.
 - DDS QoS configured through XML.
 - A publisher and subscriber running as independent Holoscan applications.
@@ -209,8 +209,9 @@ rticonnextdds-holoscan-module/
 │   ├── subscriber.hpp
 │   └── type_adapter.hpp
 ├── src/
-├── examples/
-│   └── two_idl/
+├── applications/
+│   ├── shapes_demo_flatbuffers/
+│   └── shapes_demo_xcdr/
 │       ├── idl/
 │       ├── publisher/
 │       ├── subscriber/
@@ -262,7 +263,7 @@ No full implementation estimate will be committed before this gate.
 - Integrate `rtiddsgen -language C++11` into CMake.
 - Load domain, topic, and QoS profile configuration.
 - Run independent publisher and subscriber processes.
-- Publish 20 `Telemetry` and 20 `Command` samples.
+- Publish and validate 20 `ShapeTypeExtended` samples through each path.
 - Validate exact counts, identifiers, values, and clean shutdown.
 - Add negative tests for incompatible topics/types or missing configuration.
 

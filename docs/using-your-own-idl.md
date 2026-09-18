@@ -110,7 +110,7 @@ schema traits with `holoscan_add_flatbuffer_schema()`, and map every field in
 the adapter.
 
 The complete reference is the
-[typed Shapes example](../examples/shapes_demo/README.md).
+[typed Shapes example](../applications/shapes_demo_flatbuffers/README.md).
 
 This provides the best typed Holoscan experience but requires maintaining or
 generating the companion schema and mapping.
@@ -126,7 +126,7 @@ the generated sample at the graph boundary and deserializes it before reading
 fields. No companion FlatBuffers field model is required.
 
 The complete reference is the
-[XCDR Shapes example](../examples/shapes_xcdr/README.md).
+[XCDR Shapes example](../applications/shapes_demo_xcdr/README.md).
 
 The current `ShapeXcdrAdapter` directly names the generated Shapes serializer
 functions. For a new type, provide the equivalent adapter for the functions

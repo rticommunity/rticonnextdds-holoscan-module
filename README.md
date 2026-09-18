@@ -64,9 +64,9 @@ Choose the section that matches what you want to do:
 | Understand the publisher operator | [Publisher operator](docs/operators/publisher.md) |
 | Understand the subscriber operator | [Subscriber operator](docs/operators/subscriber.md) |
 | Configure domain, topic, and QoS | [Endpoint configuration](docs/operators/configuration.md) |
-| Verify two unrelated application IDLs | [Two-IDL example](examples/two_idl/README.md) |
-| Use typed fields inside a Holoscan graph | [Typed Shapes example](examples/shapes_demo/README.md) |
-| Keep using generated DDS samples and transport XCDR bytes | [XCDR Tensor example](examples/shapes_xcdr/README.md) |
+| Verify a generated DDS type with a Holoscan payload | [Typed Shapes example](applications/shapes_demo_flatbuffers/README.md) |
+| Use typed fields inside a Holoscan graph | [Typed Shapes example](applications/shapes_demo_flatbuffers/README.md) |
+| Keep using generated DDS samples and transport XCDR bytes | [XCDR Tensor example](applications/shapes_demo_xcdr/README.md) |
 | Add an application-owned IDL | [Using your own IDL](docs/using-your-own-idl.md) |
 | Review the engineering scope | [Implementation plan](PLAN.md) |
 
@@ -88,9 +88,8 @@ Holoscan/DDS boundary.
 
 | Example | Holoscan graph payload | DDS type | Primary purpose |
 | --- | --- | --- | --- |
-| `two_idl` | `uint32_t` | `Telemetry` and `Command` | Demonstrate that the operators are reusable across IDLs |
-| `shapes_demo` | FlatBuffers `ShapeT` | `ShapeTypeExtended` | Provide typed fields to Holoscan operators |
-| `shapes_xcdr` | Host `Tensor<uint8_t>` | `ShapeTypeExtended` | Preserve the generated Connext data model at application boundaries |
+| `shapes_demo_flatbuffers` | FlatBuffers `ShapeT` | `ShapeTypeExtended` | Demonstrate typed DDS conversion |
+| `shapes_demo_xcdr` | XCDR byte Tensor | `ShapeTypeExtended` | Demonstrate DDS-native XCDR transport |
 
 Each example consists of two independent Holoscan applications: a publisher
 and a subscriber. They communicate through DDS, not through an in-process
@@ -101,9 +100,8 @@ Holoscan connection.
 | [Publisher operator](docs/operators/publisher.md) | Publish an application-owned DDS type from a Holoscan graph |
 | [Subscriber operator](docs/operators/subscriber.md) | Receive an application-owned DDS type into a Holoscan graph |
 | [Endpoint configuration](docs/operators/configuration.md) | Configure DDS domain, topic, XML QoS, and matching behavior |
-| [Two-IDL applications](examples/two_idl/README.md) | Reuse the operators with two unrelated IDL types |
-| [Typed Shapes applications](examples/shapes_demo/README.md) | Map DDS Shapes to a structured Holoscan payload |
-| [XCDR Shapes applications](examples/shapes_xcdr/README.md) | Carry an encapsulated DDS sample through a byte Tensor |
+| [Typed Shapes application](applications/shapes_demo_flatbuffers/README.md) | Use generated DDS types with a FlatBuffers payload |
+| [XCDR Shapes application](applications/shapes_demo_xcdr/README.md) | Use generated DDS types with an XCDR Tensor payload |
 | [Own-IDL guide](docs/using-your-own-idl.md) | Generate a new Connext type and integrate it into a graph |
 | [Module Dockerfile](Dockerfile) | Holoscan EA2, Connext, Code Generator, and build environment |
 
@@ -262,8 +260,9 @@ test -f "${HOLOSCAN_INSTALL}/lib/cmake/holoscan/holoscan-config.cmake" \
 docker build -t rticonnextdds-holoscan-module:ea2 "${MODULE_ROOT}"
 ```
 
-The image installs Connext 7.7.0, RTI Code Generator, CMake, and the build
-tools. It does not contain a Connext license or private Holoscan artifacts.
+The image installs Connext 7.7.0, RTI Code Generator, the pinned Holoscan CLI
+(`5.0.0a1` for EA2), CMake, and the build tools. It does not contain a
+Connext license or private Holoscan artifacts.
 
 ### 4. Configure and compile the module
 
@@ -314,7 +313,7 @@ docker run --rm --runtime=nvidia --network=host \
   -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
   -w /workspace/rticonnextdds-holoscan-module \
   rticonnextdds-holoscan-module:ea2 \
-  ctest --test-dir build-ea2 -R connext_shapes_integration --output-on-failure
+  ctest --test-dir build-ea2 -R connext_shapes_demo_flatbuffers_integration --output-on-failure
 ```
 
 Success ends with:

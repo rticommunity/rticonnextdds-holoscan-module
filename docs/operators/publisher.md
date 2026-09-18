@@ -68,7 +68,7 @@ static holoscan::TensorOutputSpec tensor_output_spec();
 
 Those methods declare dtype, rank, memory kind, bounds, storage, and transfer
 behavior to the Holoscan graph compiler. See
-[`ShapeXcdrAdapter`](../../examples/shapes_xcdr/shape_xcdr.hpp).
+[`ShapeXcdrAdapter`](../../applications/shapes_demo_xcdr/shape_xcdr.hpp).
 
 ## Constructor
 
@@ -103,16 +103,16 @@ received or acknowledged the sample.
 - The contract uses `OnEach{input}`: one queued input activates `compute()`.
 - `start()` loads the XML QoS and creates the participant, publisher, topic,
   and writer.
-- `start()` waits up to ten seconds for at least one compatible reader. Start
-  the subscriber before the publisher in the examples.
+- `start()` waits up to `reader_match_timeout` (ten seconds by default) for at
+  least one compatible reader when `wait_for_reader` is enabled. Set it to
+  `false` for a publisher that may start before its readers.
 - `compute()` receives one graph payload, calls `Adapter::to_dds()`, writes the
   DDS sample, and emits the original payload on `published`.
 - `stop()` waits up to five seconds for acknowledgements when applicable, then
   releases DDS entities in dependency order.
 
-The current reader-match wait occurs during operator startup. Applications
-that require starting without a reader will need a configurable discovery
-policy in a future public API.
+The reader-match policy and all lifecycle wait intervals are configurable in
+`EndpointConfig`.
 
 ## Adding it to a graph
 
@@ -142,11 +142,11 @@ opened. The examples copy their XML file into the matching build directory.
 
 - **Empty topic:** `start()` throws `DDS topic name must not be empty`.
 - **Missing QoS file/profile:** Connext reports an XML/QoS lookup error.
-- **No compatible reader:** startup times out after ten seconds.
+- **No compatible reader:** startup times out after the configured deadline.
 - **Type mismatch:** DDS discovery does not match the writer and reader.
 - **Tensor contract mismatch:** Holoscan rejects the graph during compile.
 - **License failure:** Connext cannot create DDS entities.
 
 For a complete application, see
-[`connext_shapes_publisher`](../../examples/shapes_demo/publisher.cpp) or
-[`connext_shapes_xcdr_publisher`](../../examples/shapes_xcdr/publisher.cpp).
+[`connext_shapes_demo_flatbuffers_publisher`](../../applications/shapes_demo_flatbuffers/publisher.cpp) or
+[`connext_shapes_demo_xcdr_publisher`](../../applications/shapes_demo_xcdr/publisher.cpp).

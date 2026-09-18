@@ -8,6 +8,12 @@ struct EndpointConfig {
   std::string topic_name;
   std::string qos_file{"HoloscanConnextQos.xml"};
   std::string qos_profile{"HoloscanConnext::ReliableKeepAll"};
+  std::uint32_t max_samples_per_activation{32U};
+  bool wait_for_reader{true};
+  std::chrono::milliseconds reader_match_timeout{10000};
+  std::chrono::milliseconds reader_match_poll_interval{100};
+  std::chrono::milliseconds acknowledgment_timeout{5000};
+  std::chrono::milliseconds notification_retry_interval{1};
 };
 ```
 
@@ -19,6 +25,21 @@ struct EndpointConfig {
 | `topic_name` | Empty | Always set it to the application topic |
 | `qos_file` | `HoloscanConnextQos.xml` | Ensure the file exists in the process working directory or provide a path |
 | `qos_profile` | `HoloscanConnext::ReliableKeepAll` | Ensure the XML library and profile exist |
+| `max_samples_per_activation` | `32` | Maximum samples a subscriber emits per compute; must be positive |
+| `wait_for_reader` | `true` | Make a publisher wait for a matched reader during startup |
+| `reader_match_timeout` | `10 s` | Publisher startup match deadline |
+| `reader_match_poll_interval` | `100 ms` | Publisher match polling interval |
+| `acknowledgment_timeout` | `5 s` | Publisher shutdown acknowledgment deadline |
+| `notification_retry_interval` | `1 ms` | Retry interval when the Holoscan notification queue is full |
+
+The subscriber uses `max_samples_per_activation` both for its Holoscan
+`max_emits_per_compute` contract and for the Connext `Selector`, so a single
+activation never exceeds the declared output bound.
+
+For parallel integration tests, `HOLOSCAN_DDS_DOMAIN_ID` can override the
+domain and `HOLOSCAN_DDS_TOPIC_PREFIX` can prefix the configured topic. These
+environment overrides are intended for test isolation; production applications
+should set the values explicitly in `EndpointConfig`.
 
 ## Matching rules
 

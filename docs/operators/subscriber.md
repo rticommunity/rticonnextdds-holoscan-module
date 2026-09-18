@@ -58,9 +58,10 @@ types, and QoS. See [endpoint configuration](configuration.md).
 |---|---|---|---|
 | `output` | Output | `Adapter::holoscan_type` | One converted payload for each valid DDS sample |
 
-The current output declaration admits a burst of at most 32 emissions per
-activation. The example QoS and graph queues are sized consistently with that
-prototype limit.
+The output declaration and DDS selector both enforce
+`config.max_samples_per_activation` (32 by default), so each activation stays
+within Holoscan's emission contract. Increase it explicitly when larger
+batches are appropriate.
 
 ## Event-driven activation
 
@@ -72,7 +73,8 @@ The subscriber does not poll DDS from every Holoscan scheduler cycle:
 3. When data becomes available, the thread posts a bounded Holoscan
    `NotificationSource`.
 4. `OnNotified` activates `compute()` on the Holoscan scheduler.
-5. `compute()` takes valid samples, calls `Adapter::from_dds()` for each one,
+5. `compute()` takes at most the configured batch of valid samples, calls
+   `Adapter::from_dds()` for each one,
    and emits the resulting graph payloads.
 6. The waiter is rearmed after the activation drains the available samples.
 
@@ -124,5 +126,5 @@ examples.
   wake and join the DDS wait thread deterministically.
 
 For complete applications, see
-[`connext_shapes_subscriber`](../../examples/shapes_demo/subscriber.cpp) and
-[`connext_shapes_xcdr_subscriber`](../../examples/shapes_xcdr/subscriber.cpp).
+[`connext_shapes_demo_flatbuffers_subscriber`](../../applications/shapes_demo_flatbuffers/subscriber.cpp) and
+[`connext_shapes_demo_xcdr_subscriber`](../../applications/shapes_demo_xcdr/subscriber.cpp).
