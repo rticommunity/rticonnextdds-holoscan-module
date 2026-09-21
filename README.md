@@ -66,16 +66,11 @@ $HOLOSCAN_CLI build connext_shapes_holoviz \
   --no-docker-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
 ```
 
-On a host without a graphical display, run the headless mode. It uses a virtual
-display and exits cleanly when interrupted with `Ctrl+C`:
+Run two copies of the same application in separate terminals. The modes select
+the local shape and color while both applications also subscribe to the other
+DDS samples:
 
-```bash
-$HOLOSCAN_CLI run connext_shapes_holoviz headless_square \
-  --no-docker-build --no-local-build \
-  --local-sdk-root "$HOLOSCAN_SDK_ROOT"
-```
-
-With a graphical display available, use `square`, `circle`, or `triangle`:
+**Terminal 1 — black square:**
 
 ```bash
 $HOLOSCAN_CLI run connext_shapes_holoviz square \
@@ -83,9 +78,7 @@ $HOLOSCAN_CLI run connext_shapes_holoviz square \
   --local-sdk-root "$HOLOSCAN_SDK_ROOT"
 ```
 
-To demonstrate interoperability, run another instance configured as an
-external publisher, or use RTI Shapes Demo, with the same domain and topic. For
-example, a second application instance can publish a red circle:
+**Terminal 2 — red circle:**
 
 ```bash
 $HOLOSCAN_CLI run connext_shapes_holoviz circle \
@@ -93,8 +86,8 @@ $HOLOSCAN_CLI run connext_shapes_holoviz circle \
   --local-sdk-root "$HOLOSCAN_SDK_ROOT"
 ```
 
-The local square is rendered directly by Holoviz. Samples received from the
-external DDS publisher are rendered separately with a dark-blue outline.
+The two instances exchange Shapes samples through Connext DDS and display both
+the locally generated and received shapes in Holoviz.
 
 ## What can you do with this module?
 
