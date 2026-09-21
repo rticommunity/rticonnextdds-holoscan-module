@@ -63,8 +63,9 @@ export HOLOSCAN_ARCH=arm64  # use amd64 on x86_64
 ./run build --arch "$HOLOSCAN_ARCH" --cudaarchs <cuda-architecture> --sccache false
 ```
 
-This produces the `holoscan-sdk-build-aarch64:v5.0.0-ea2` image and an
-`install-aarch64` SDK directory. Keep both outside this repository.
+This produces an architecture-specific SDK image and install directory (for
+example, `holoscan-sdk-build-aarch64:v5.0.0-ea2` and `install-aarch64`). Keep
+both outside this repository.
 
 Install the EA2 Holoscan CLI in a Python 3.11+ virtual environment:
 
