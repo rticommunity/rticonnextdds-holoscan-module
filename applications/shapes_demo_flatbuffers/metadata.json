@@ -30,14 +30,14 @@
         "description": "Run the Shapes FlatBuffers publisher",
         "run": {
           "command": "<holohub_app_bin>/connext_shapes_demo_flatbuffers_publisher",
-          "workdir": "holohub_app_bin", "docker_run_args": "-e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"
+          "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"
         }
       },
       "subscriber": {
         "description": "Run the Shapes FlatBuffers subscriber",
         "run": {
           "command": "<holohub_app_bin>/connext_shapes_demo_flatbuffers_subscriber",
-          "workdir": "holohub_app_bin", "docker_run_args": "-e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"
+          "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"
         }
       }
     }

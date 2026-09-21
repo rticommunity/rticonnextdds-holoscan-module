@@ -16,23 +16,23 @@
     "modes": {
       "square": {
         "description": "Publish and display a local black Square",
-        "run": {"command": "<holohub_app_bin>/connext_shapes_holoviz", "workdir": "holohub_app_bin", "docker_run_args": "-e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
+        "run": {"command": "<holohub_app_bin>/connext_shapes_holoviz", "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
       },
       "circle": {
         "description": "Publish a red Circle for a second application or RTI Shapes Demo",
-        "run": {"command": "<holohub_app_bin>/connext_shapes_holoviz --publish-topic Circle --publish-color RED", "workdir": "holohub_app_bin", "docker_run_args": "-e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
+        "run": {"command": "<holohub_app_bin>/connext_shapes_holoviz --publish-topic Circle --publish-color RED", "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
       },
       "triangle": {
         "description": "Publish a green Triangle for a second application or RTI Shapes Demo",
-        "run": {"command": "<holohub_app_bin>/connext_shapes_holoviz --publish-topic Triangle --publish-color GREEN", "workdir": "holohub_app_bin", "docker_run_args": "-e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
+        "run": {"command": "<holohub_app_bin>/connext_shapes_holoviz --publish-topic Triangle --publish-color GREEN", "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
       },
       "headless_square": {
         "description": "Publish and display a local black Square on an Xvfb display",
-        "run": {"command": "bash -lc \"export DISPLAY=:99 XDG_RUNTIME_DIR=/tmp; Xvfb :99 -screen 0 800x800x24 >/tmp/xvfb.log 2>&1 & exec <holohub_app_bin>/connext_shapes_holoviz\"", "workdir": "holohub_app_bin", "docker_run_args": "-e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
+        "run": {"command": "bash -lc \"export DISPLAY=:99 XDG_RUNTIME_DIR=/tmp; Xvfb :99 -screen 0 800x800x24 >/tmp/xvfb.log 2>&1 & exec <holohub_app_bin>/connext_shapes_holoviz\"", "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
       },
       "headless_circle": {
         "description": "Publish and display an external red Circle on an Xvfb display",
-        "run": {"command": "bash -lc \"export DISPLAY=:100 XDG_RUNTIME_DIR=/tmp; Xvfb :100 -screen 0 800x800x24 >/tmp/xvfb.log 2>&1 & exec <holohub_app_bin>/connext_shapes_holoviz --publish-topic Circle --publish-color RED\"", "workdir": "holohub_app_bin", "docker_run_args": "-e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
+        "run": {"command": "bash -lc \"export DISPLAY=:100 XDG_RUNTIME_DIR=/tmp; Xvfb :100 -screen 0 800x800x24 >/tmp/xvfb.log 2>&1 & exec <holohub_app_bin>/connext_shapes_holoviz --publish-topic Circle --publish-color RED\"", "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
       }
     }
   }
