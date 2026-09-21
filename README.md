@@ -140,7 +140,6 @@ Choose the section that matches what you want to do:
 | Use typed fields inside a Holoscan graph | [Typed Shapes example](applications/shapes_demo_flatbuffers/README.md) |
 | Keep using generated DDS samples and transport XCDR bytes | [XCDR Tensor example](applications/shapes_demo_xcdr/README.md) |
 | Add an application-owned IDL | [Using your own IDL](docs/using-your-own-idl.md) |
-| Review the engineering scope | [Implementation plan](PLAN.md) |
 
 ## Components
 
