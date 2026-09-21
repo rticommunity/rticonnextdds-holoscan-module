@@ -214,6 +214,31 @@ into the ignored `build-ea2` directory and passes its path through
 
 ## Container quick start
 
+## Holoscan CLI workflow
+
+The supported user workflow is to let the Holoscan CLI build and run each application in Docker. The CLI profile in `pyproject.toml` selects the validated EA2 base image.
+
+From the repository root:
+
+```bash
+export HOLOSCAN_CLI=./.venv-holoscan-cli/bin/holoscan
+export HOLOSCAN_SDK_ROOT=/Users/juanca/dgx-holo5/holoscan5-ea-private/ea2/holoscan-sdk/install-aarch64
+test -s rti_license.dat
+
+$HOLOSCAN_CLI build-container shapes_demo_flatbuffers
+$HOLOSCAN_CLI build shapes_demo_flatbuffers --no-docker-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+$HOLOSCAN_CLI modes shapes_demo_flatbuffers
+```
+
+Run the subscriber and publisher in separate terminals:
+
+```bash
+$HOLOSCAN_CLI run shapes_demo_flatbuffers subscriber --no-docker-build --no-local-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+$HOLOSCAN_CLI run shapes_demo_flatbuffers publisher --no-docker-build --no-local-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+```
+
+Use the same sequence with `shapes_demo_xcdr`. For the visual reference application, build its CLI image and select `square`, `circle`, `triangle`, `headless_square`, or `headless_circle` with `holoscan run`. The CLI mounts the ignored `rti_license.dat` into the container; the license is never copied into the image or committed.
+
 The following commands assume Bash. Start Bash first if the current shell is
 `tcsh` or another shell with different variable syntax:
 
@@ -342,7 +367,7 @@ docker run --rm --runtime=nvidia --network=host \
   ctest --test-dir build-ea2 --output-on-failure
 ```
 
-The suite contains seven tests: SDK/runtime smoke tests, generated-type tests,
+The suite contains six tests: SDK/runtime smoke tests, generated-type tests,
 typed and XCDR adapter tests, and three real DDS integrations.
 
 ## Choosing a payload boundary

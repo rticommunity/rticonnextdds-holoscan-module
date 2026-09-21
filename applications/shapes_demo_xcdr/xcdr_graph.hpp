@@ -24,7 +24,6 @@
 #include <holoscan/core/temporal_contract.hpp>
 
 #include "example_graph.hpp"
-#include "shape_adapter.hpp"
 #include "shape_xcdr.hpp"
 
 namespace rti::holoscan::example {
@@ -96,7 +95,7 @@ class DdsShapeXcdrSink final : public ::holoscan::Operator<> {
     std::cout << "XCDR ShapeTypeExtended: color=" << shape.color << " x=" << shape.x
               << " y=" << shape.y << " size=" << shape.shapesize
               << " angle=" << shape.angle << '\n';
-    ShapeObservation::record(ShapeAdapter::from_dds(shape));
+    ShapeObservation::record(shape);
     return {};
   }
 

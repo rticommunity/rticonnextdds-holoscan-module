@@ -88,7 +88,7 @@ Both applications use:
 | Domain ID | `0` |
 | Topic | `Square` |
 | DDS type | `ShapeTypeExtended` |
-| QoS file | `HoloscanConnextQos.xml` copied from the typed Shapes example |
+| QoS file | `HoloscanConnextQos.xml` included with this example |
 | QoS profile | `HoloscanConnext::ShapesInterop` |
 | Reliability | Best effort |
 | History | Keep last, depth 32 |
@@ -100,14 +100,16 @@ conversion is at the Holoscan graph boundary.
 
 | File | Purpose |
 |---|---|
+| `example_graph.hpp` | Local deterministic Shapes source, sink, and validation helpers |
+| `HoloscanConnextQos.xml` | Local Shapes-compatible DDS QoS |
 | `shape_xcdr.hpp` | XCDR serialization, deserialization, Tensor ownership, and Tensor contracts |
 | `xcdr_graph.hpp` | Application source and sink that work with `ShapeTypeExtended` |
 | `publisher.cpp` | `connext_shapes_demo_xcdr_publisher` application |
 | `subscriber.cpp` | `connext_shapes_demo_xcdr_subscriber` application |
 | `tests/shapes_conversion_benchmark.cpp` | Typed versus XCDR CPU conversion benchmark |
 
-The generated `ShapeTypeExtended` and the XML QoS file are shared with the
-typed Shapes example.
+This example generates its own `ShapeTypeExtended` support and includes its own
+XML QoS file, so it builds independently of the typed Shapes example.
 
 ## Publisher application
 
@@ -149,6 +151,26 @@ The application:
 5. Accesses normal generated DDS fields and validates all 20 samples.
 
 ## Run the applications manually
+
+## Holoscan CLI workflow
+
+`metadata.json` exposes `publisher` and `subscriber` modes as first-class Holoscan CLI applications. The CLI builds and runs them in Docker:
+
+```bash
+export HOLOSCAN_CLI=./.venv-holoscan-cli/bin/holoscan
+export HOLOSCAN_SDK_ROOT=/Users/juanca/dgx-holo5/holoscan5-ea-private/ea2/holoscan-sdk/install-aarch64
+$HOLOSCAN_CLI build-container shapes_demo_xcdr
+$HOLOSCAN_CLI build shapes_demo_xcdr --no-docker-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+```
+
+Run `subscriber` first and `publisher` in a second terminal:
+
+```bash
+$HOLOSCAN_CLI run shapes_demo_xcdr subscriber --no-docker-build --no-local-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+$HOLOSCAN_CLI run shapes_demo_xcdr publisher --no-docker-build --no-local-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+```
+
+The CLI mounts the ignored project-root `rti_license.dat` into the application container.
 
 Complete the [root container quick start](../../README.md#container-quick-start)
 and retain its `MODULE_ROOT` and `HOLOSCAN_INSTALL` variables.

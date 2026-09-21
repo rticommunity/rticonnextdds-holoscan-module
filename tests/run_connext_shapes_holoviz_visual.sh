@@ -11,6 +11,7 @@ artifact_dir="${workspace}/${artifact_relative}"
 host_artifact_dir="${host_workspace}/${artifact_relative}"
 local_name="connext-holoviz-local-${$}"
 external_name="connext-holoviz-external-${$}"
+domain_id=$((100 + $$ % 100))
 mkdir -p "${artifact_dir}"
 rm -f "${artifact_dir}/local.png" "${artifact_dir}/external.png"
 common=(--runtime=nvidia --net host --ipc host -u "$(id -u):$(id -g)"
@@ -25,9 +26,9 @@ cleanup() { docker rm -f "${local_name}" "${external_name}" >/dev/null 2>&1 || t
 trap cleanup EXIT
 
 docker run -d --name "${local_name}" "${common[@]}" "${image}" bash -lc \
-  "export DISPLAY=:99 XDG_RUNTIME_DIR=/tmp; Xvfb :99 -screen 0 800x800x24 >/tmp/xvfb.log 2>&1 & exec ./connext_shapes_holoviz --domain-id 77" >/dev/null
+  "export DISPLAY=:99 XDG_RUNTIME_DIR=/tmp; Xvfb :99 -screen 0 800x800x24 >/tmp/xvfb.log 2>&1 & exec ./connext_shapes_holoviz --domain-id ${domain_id}" >/dev/null
 docker run -d --name "${external_name}" "${common[@]}" "${image}" bash -lc \
-  "export DISPLAY=:100 XDG_RUNTIME_DIR=/tmp; Xvfb :100 -screen 0 800x800x24 >/tmp/xvfb.log 2>&1 & exec ./connext_shapes_holoviz --domain-id 77 --publish-topic Circle --publish-color RED" >/dev/null
+  "export DISPLAY=:100 XDG_RUNTIME_DIR=/tmp; Xvfb :100 -screen 0 800x800x24 >/tmp/xvfb.log 2>&1 & exec ./connext_shapes_holoviz --domain-id ${domain_id} --publish-topic Circle --publish-color RED" >/dev/null
 sleep 8
 test "$(docker inspect --format "{{.State.Running}}" "${local_name}")" = true
 test "$(docker inspect --format "{{.State.Running}}" "${external_name}")" = true

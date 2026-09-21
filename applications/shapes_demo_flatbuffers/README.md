@@ -125,6 +125,26 @@ The application:
 
 ## Run the applications manually
 
+## Holoscan CLI workflow
+
+`metadata.json` exposes `publisher` and `subscriber` modes as first-class Holoscan CLI applications. The CLI builds and runs them in Docker:
+
+```bash
+export HOLOSCAN_CLI=./.venv-holoscan-cli/bin/holoscan
+export HOLOSCAN_SDK_ROOT=/Users/juanca/dgx-holo5/holoscan5-ea-private/ea2/holoscan-sdk/install-aarch64
+$HOLOSCAN_CLI build-container shapes_demo_flatbuffers
+$HOLOSCAN_CLI build shapes_demo_flatbuffers --no-docker-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+```
+
+Run `subscriber` first and `publisher` in a second terminal:
+
+```bash
+$HOLOSCAN_CLI run shapes_demo_flatbuffers subscriber --no-docker-build --no-local-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+$HOLOSCAN_CLI run shapes_demo_flatbuffers publisher --no-docker-build --no-local-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+```
+
+The CLI mounts the ignored project-root `rti_license.dat` into the application container.
+
 Complete the [root container quick start](../../README.md#container-quick-start)
 and retain its `MODULE_ROOT` and `HOLOSCAN_INSTALL` variables.
 
