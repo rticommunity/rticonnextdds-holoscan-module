@@ -69,6 +69,8 @@ both outside this repository.
 
 Install the EA2 Holoscan CLI in a Python 3.11+ virtual environment:
 
+After installing the CLI, obtain the Connext license described in [RTI Connext license](#rti-connext-license) before continuing.
+
 ```bash
 cd /path/to/rticonnextdds-holoscan-module
 python3.11 -m venv .venv-holoscan-cli
