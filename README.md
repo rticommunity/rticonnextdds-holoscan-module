@@ -51,9 +51,9 @@ topics and displays those samples as they arrive.
 All commands below build and run inside Docker. No Holoscan or Connext
 installation is required on the host.
 
-Before running the example, prepare the EA2 SDK and the host CLI. EA2 does not
-use a public GAR image, so build the SDK from the private NVIDIA EA2 source tree
-using NVIDIA's container workflow:
+Before running the example, prepare the EA2 SDK and the host CLI. Holoscan 5 EA2 does not
+provide a public Docker image, so build the SDK from the NVIDIA EA2 source tree using
+NVIDIA's container workflow:
 
 ```bash
 git clone --branch v5.0.0-ea2 --depth 1 \
