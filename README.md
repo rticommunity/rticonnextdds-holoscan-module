@@ -161,10 +161,13 @@ Holoscan/DDS boundary.
 | --- | --- | --- | --- |
 | `shapes_demo_flatbuffers` | FlatBuffers `ShapeT` | `ShapeTypeExtended` | Demonstrate typed DDS conversion |
 | `shapes_demo_xcdr` | XCDR byte Tensor | `ShapeTypeExtended` | Demonstrate DDS-native XCDR transport |
+| `connext_shapes_holoviz` | FlatBuffers `ShapeT` plus Holoviz frame | `ShapeTypeExtended` | Demonstrate local generation, DDS exchange, and Holoviz visualization |
 
-Each example consists of two independent Holoscan applications: a publisher
-and a subscriber. They communicate through DDS, not through an in-process
-Holoscan connection.
+The FlatBuffers and XCDR examples each provide independent publisher and
+subscriber applications. They communicate through DDS, not through an
+in-process Holoscan connection. The Holoviz example is one application that
+generates a local shape, publishes it, subscribes to the three Shapes topics,
+and visualizes both local and received samples.
 
 | Component | Purpose |
 | --- | --- |
@@ -173,6 +176,7 @@ Holoscan connection.
 | [Endpoint configuration](docs/operators/configuration.md) | Configure DDS domain, topic, XML QoS, and matching behavior |
 | [Typed Shapes application](applications/shapes_demo_flatbuffers/README.md) | Use generated DDS types with a FlatBuffers payload |
 | [XCDR Shapes application](applications/shapes_demo_xcdr/README.md) | Use generated DDS types with an XCDR Tensor payload |
+| [Shapes + Holoviz application](applications/connext_shapes_holoviz/README.md) | Combine local Shapes generation, DDS pub/sub, and Holoviz |
 | [Own-IDL guide](docs/using-your-own-idl.md) | Generate a new Connext type and integrate it into a graph |
 | [Module Dockerfile](Dockerfile) | Holoscan EA2, Connext, Code Generator, and build environment |
 
