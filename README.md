@@ -49,14 +49,39 @@ topics and displays those samples as they arrive.
 All commands below build and run inside Docker. No Holoscan or Connext
 installation is required on the host.
 
-From the module repository root, provide the EA2 SDK installation and the
-ignored RTI license file:
+Before running the example, prepare the EA2 SDK and the host CLI. EA2 does not
+use a public GAR image, so build the SDK from the private NVIDIA EA2 source tree
+using NVIDIA's container workflow:
 
 ```bash
-export HOLOSCAN_CLI=./.venv-holoscan-cli/bin/holoscan
-export HOLOSCAN_SDK_ROOT=/Users/juanca/dgx-holo5/holoscan5-ea-private/ea2/holoscan-sdk/install-aarch64
+cd /path/to/holoscan-sdk
+./run build --arch arm64 --cudaarchs <cuda-architecture> --sccache false
+```
+
+This produces the `holoscan-sdk-build-aarch64:v5.0.0-ea2` image and an
+`install-aarch64` SDK directory. Keep both outside this repository.
+
+Install the EA2 Holoscan CLI in a Python 3.11+ virtual environment:
+
+```bash
+cd /path/to/rticonnextdds-holoscan-module
+python3.11 -m venv .venv-holoscan-cli
+.venv-holoscan-cli/bin/python -m pip install --upgrade pip
+.venv-holoscan-cli/bin/python -m pip install --pre \
+  --extra-index-url https://pypi.nvidia.com \
+  'holoscan-cli==5.0.0a1'
+```
+
+Set the repository, SDK, CLI, and license paths for the current shell:
+
+```bash
+export MODULE_ROOT=/path/to/rticonnextdds-holoscan-module
+export HOLOSCAN_SDK_ROOT=/path/to/holoscan-sdk/install-aarch64
+export HOLOSCAN_CLI="${MODULE_ROOT}/.venv-holoscan-cli/bin/holoscan"
+cd "${MODULE_ROOT}"
 test -s rti_license.dat
 ```
+
 
 Build the application image and compile the application in the EA2 container:
 
@@ -272,10 +297,10 @@ The supported user workflow is to let the Holoscan CLI build and run each applic
 From the repository root:
 
 ```bash
-export HOLOSCAN_CLI=./.venv-holoscan-cli/bin/holoscan
-export HOLOSCAN_SDK_ROOT=/Users/juanca/dgx-holo5/holoscan5-ea-private/ea2/holoscan-sdk/install-aarch64
+export MODULE_ROOT=/path/to/rticonnextdds-holoscan-module
+export HOLOSCAN_SDK_ROOT=/path/to/holoscan-sdk/install-aarch64
+export HOLOSCAN_CLI="${MODULE_ROOT}/.venv-holoscan-cli/bin/holoscan"
 test -s rti_license.dat
-
 $HOLOSCAN_CLI build-container shapes_demo_flatbuffers
 $HOLOSCAN_CLI build shapes_demo_flatbuffers --no-docker-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
 $HOLOSCAN_CLI modes shapes_demo_flatbuffers
@@ -319,8 +344,8 @@ Set absolute paths for the shell session. Replace the example paths if the
 repositories live elsewhere:
 
 ```bash
-export MODULE_ROOT=/home1/juanca/holo5/rticonnextdds-holoscan-module
-export HOLOSCAN_INSTALL=/home1/juanca/holo5/holoscan5-ea-private/ea2/holoscan-sdk/install-aarch64
+export MODULE_ROOT=/path/to/rticonnextdds-holoscan-module
+export HOLOSCAN_INSTALL=/path/to/holoscan-sdk/install-aarch64
 cd "${MODULE_ROOT}"
 ```
 

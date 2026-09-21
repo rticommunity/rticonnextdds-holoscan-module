@@ -158,7 +158,7 @@ The application:
 
 ```bash
 export HOLOSCAN_CLI=./.venv-holoscan-cli/bin/holoscan
-export HOLOSCAN_SDK_ROOT=/Users/juanca/dgx-holo5/holoscan5-ea-private/ea2/holoscan-sdk/install-aarch64
+export HOLOSCAN_SDK_ROOT=/path/to/holoscan-sdk/install-aarch64
 $HOLOSCAN_CLI build-container shapes_demo_xcdr
 $HOLOSCAN_CLI build shapes_demo_xcdr --no-docker-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
 ```

@@ -31,7 +31,7 @@ remains wire-compatible with RTI Shapes Demo.
 
 ```bash
 export HOLOSCAN_CLI=./.venv-holoscan-cli/bin/holoscan
-export HOLOSCAN_SDK_ROOT=/Users/juanca/dgx-holo5/holoscan5-ea-private/ea2/holoscan-sdk/install-aarch64
+export HOLOSCAN_SDK_ROOT=/path/to/holoscan-sdk/install-aarch64
 $HOLOSCAN_CLI build-container connext_shapes_holoviz
 $HOLOSCAN_CLI build connext_shapes_holoviz --no-docker-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
 $HOLOSCAN_CLI run connext_shapes_holoviz headless_square --no-docker-build --no-local-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
