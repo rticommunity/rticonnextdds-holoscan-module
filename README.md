@@ -91,14 +91,6 @@ test -s rti_license.dat
 ```
 
 
-Build the application image and compile the application in the EA2 container:
-
-```bash
-$HOLOSCAN_CLI build-container connext_shapes_holoviz
-$HOLOSCAN_CLI build connext_shapes_holoviz \
-  --no-docker-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
-```
-
 Run two copies of the same application in separate terminals. The modes select
 the local shape and color while both applications also subscribe to the other
 DDS samples:
@@ -113,19 +105,11 @@ $HOLOSCAN_CLI run connext_shapes_holoviz square \
 
 **Terminal 2 — red circle:**
 
-```bash
-$HOLOSCAN_CLI run connext_shapes_holoviz circle \
-  --no-docker-build --no-local-build \
-  --local-sdk-root "$HOLOSCAN_SDK_ROOT"
-```
+$HOLOSCAN_CLI run connext_shapes_holoviz square --local-sdk-root "$HOLOSCAN_SDK_ROOT"
 
 The two instances exchange Shapes samples through Connext DDS and display both
 the locally generated and received shapes in Holoviz.
-
-## What can you do with this module?
-
-The module provides reusable C++ publish and subscribe operators for
-application-owned DDS types, CMake-driven Connext type generation from IDL,
+$HOLOSCAN_CLI run connext_shapes_holoviz circle --local-sdk-root "$HOLOSCAN_SDK_ROOT"
 XML QoS configuration, and ready-to-run applications.
 
 The examples demonstrate two complementary integrations: typed FlatBuffers
