@@ -1,5 +1,7 @@
 # RTI Connext DDS for NVIDIA Holoscan
 
+![EXPERIMENTAL](assets/experimental-stamp.png)
+
 Bring the power of RTI Connext to NVIDIA Holoscan applications. This module
 makes it easy for Holoscan applications to publish and subscribe to strongly
 typed data using the DDS publish/subscribe communication model, without
