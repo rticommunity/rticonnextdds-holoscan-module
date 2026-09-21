@@ -3,39 +3,17 @@
   "module": {
     "name": "rticonnextdds-holoscan-module",
     "version": "0.1.0",
-    "description": "RTI Connext DDS operators and reference applications for NVIDIA Holoscan 5",
-    "authors": [
-      {
-        "name": "RTI Real-Time Innovations",
-        "affiliation": "RTI Real-Time Innovations"
-      }
-    ],
-    "license": "RTI License (custom, see LICENSE)",
+    "description": "RTI Connext DDS Shapes and Holoviz reference application for Holoscan 4.6",
+    "authors": [{"name": "RTI Real-Time Innovations", "affiliation": "RTI Real-Time Innovations"}],
+    "license": "RTI Examples License",
     "language": ["C++"],
-    "namespace": {
-      "cpp": "rti::holoscan::dds"
-    },
-    "operator_names": ["PublisherOp", "SubscriberOp"],
-    "subprojects": {
-      "operators": ["dds"],
-      "applications": ["shapes_demo_flatbuffers", "shapes_demo_xcdr", "connext_shapes_holoviz"]
-    },
-    "holoscan_sdk": {
-      "minimum_required_version": "5.0.0",
-      "tested_versions": ["5.0.0"]
-    },
-    "platforms": ["x86_64", "aarch64"],
-    "tags": ["DDS", "RTI Connext", "Networking and Distributed Computing"],
-    "requirements": {
-      "system_packages": ["ca-certificates", "curl", "openjdk-21-jre"]
-    },
-    "binary_packages": {},
+    "source_location": "holohub/4.6",
+    "subprojects": {"applications": ["connext_shapes_holoviz"]},
+    "holoscan_sdk": {"minimum_required_version": "4.6.0", "tested_versions": ["4.6.0"]},
+    "platforms": ["aarch64", "x86_64"],
+    "tags": ["DDS", "RTI Connext", "Holoviz", "Shapes Demo"],
+    "requirements": {"system_packages": ["ca-certificates", "curl", "openjdk-21-jre", "xauth", "xvfb"]},
     "dockerfile": "Dockerfile",
-    "documentation": {
-      "readme": "README.md"
-    },
-    "testing": {
-      "cpp": "ctest"
-    }
+    "documentation": {"readme": "README.md"}
   }
 }

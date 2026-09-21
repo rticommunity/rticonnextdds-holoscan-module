@@ -1,39 +1,16 @@
 {
-  "$schema": "urn:holohub:application:v1",
   "application": {
-    "name": "Connext Shapes with Holoviz",
-    "description": "Holoscan-generated Shapes visualized locally and exchanged with RTI Connext DDS.",
-    "authors": [{"name": "RTI Real-Time Innovations", "affiliation": "RTI Real-Time Innovations"}],
-    "language": "C++",
+    "name": "connext_shapes_holoviz",
+    "description": "Holoscan 4.6 Shapes publisher/subscriber with Holoviz",
     "version": "0.1.0",
-    "changelog": {"0.1.0": "Initial Holoscan 5 EA2 Connext Shapes and Holoviz reference application"},
-    "holoscan_sdk": {"minimum_required_version": "5.0.0", "tested_versions": ["5.0.0"]},
-    "platforms": ["x86_64", "aarch64"],
+    "language": ["C++"],
+    "holoscan_sdk": {"minimum_required_version": "4.6.0", "tested_versions": ["4.6.0"]},
+    "platforms": ["aarch64", "x86_64"],
     "tags": ["DDS", "RTI Connext", "Holoviz", "Shapes Demo"],
-    "ranking": 2,
-    "requirements": {"operators": [{"name": "dds", "version": "0.1.0"}]},
-    "default_mode": "square",
-    "modes": {
-      "square": {
-        "description": "Publish and display a local black Square",
-        "run": {"command": "bash -lc \"bash <holohub_app_bin>/require_rti_license.sh && exec <holohub_app_bin>/connext_shapes_holoviz\"", "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
-      },
-      "circle": {
-        "description": "Publish a red Circle for a second application or RTI Shapes Demo",
-        "run": {"command": "bash -lc \"bash <holohub_app_bin>/require_rti_license.sh && exec <holohub_app_bin>/connext_shapes_holoviz --publish-topic Circle --publish-color RED\"", "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
-      },
-      "triangle": {
-        "description": "Publish a green Triangle for a second application or RTI Shapes Demo",
-        "run": {"command": "bash -lc \"bash <holohub_app_bin>/require_rti_license.sh && exec <holohub_app_bin>/connext_shapes_holoviz --publish-topic Triangle --publish-color GREEN\"", "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
-      },
-      "headless_square": {
-        "description": "Publish and display a local black Square on an Xvfb display",
-        "run": {"command": "bash -lc \"bash <holohub_app_bin>/require_rti_license.sh && export DISPLAY=:99 XDG_RUNTIME_DIR=/tmp; Xvfb :99 -screen 0 800x800x24 >/tmp/xvfb.log 2>&1 & exec <holohub_app_bin>/connext_shapes_holoviz\"", "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
-      },
-      "headless_circle": {
-        "description": "Publish and display an external red Circle on an Xvfb display",
-        "run": {"command": "bash -lc \"bash <holohub_app_bin>/require_rti_license.sh && export DISPLAY=:100 XDG_RUNTIME_DIR=/tmp; Xvfb :100 -screen 0 800x800x24 >/tmp/xvfb.log 2>&1 & exec <holohub_app_bin>/connext_shapes_holoviz --publish-topic Circle --publish-color RED\"", "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"}
-      }
+    "requirements": [{"name": "RTI Connext DDS", "version": "7.7.0", "license": "Closed"}],
+    "run": {
+      "command": "require_rti_license && exec <holohub_app_bin>/connext_shapes_holoviz --headless --samples 40",
+      "docker_run_args": "--network host -v $PWD/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro -e RTI_LICENSE_FILE=/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat"
     }
   }
 }

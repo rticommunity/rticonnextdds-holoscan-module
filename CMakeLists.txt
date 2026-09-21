@@ -1,47 +1,38 @@
 # *******************************************************************************
 #  (c) 2026 Copyright, Real-Time Innovations, Inc. All rights reserved.
-#  RTI grants Licensee a license to use, modify, compile, and create derivative
-#  works of the Software. Licensee has the right to distribute object form only
-#  for use with RTI products. The Software is provided "as is", with no warranty
-#  of any type, including any warranty for fitness for any purpose. RTI is under no
-#  obligation to maintain or support the Software. RTI shall not be liable for any
-#  incidental or consequential damages arising out of the use or inability to use
-#  the software.
+#  RTI Examples License.
 # *******************************************************************************/
 
-cmake_minimum_required(VERSION 3.30)
-project(rticonnextdds_holoscan_module VERSION 0.1.0
-    DESCRIPTION "RTI Connext DDS integration for NVIDIA Holoscan" LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.24)
+project(rticonnextdds_holoscan_module LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(Threads REQUIRED)
-find_package(holoscan 5.0.0 REQUIRED CONFIG)
+find_package(holoscan 4.6 REQUIRED CONFIG
+  PATHS /opt/nvidia/holoscan /workspace/holoscan-sdk/install)
+
 if(NOT DEFINED ENV{NDDSHOME} OR "$ENV{NDDSHOME}" STREQUAL "")
-  message(FATAL_ERROR "NDDSHOME must point to an RTI Connext DDS installation")
+  message(FATAL_ERROR "NDDSHOME must point to RTI Connext DDS 7.7.0")
 endif()
 list(PREPEND CMAKE_MODULE_PATH "$ENV{NDDSHOME}/resource/cmake")
 find_package(RTIConnextDDS 7.7.0 REQUIRED)
 
 include(CTest)
-option(RTI_HOLOSCAN_ENABLE_VISUAL_TESTS
-  "Register the Docker/Xvfb Holoviz visual integration test" OFF)
-include(cmake/RTIConnextDDSGenerateIdl.cmake)
-
-add_library(rti_connext_dds_operators INTERFACE)
-add_library(RTIConnextDDSHoloscan::dds ALIAS rti_connext_dds_operators)
-target_compile_features(rti_connext_dds_operators INTERFACE cxx_std_20)
-target_include_directories(rti_connext_dds_operators INTERFACE
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/operators/dds/include>")
-target_link_libraries(rti_connext_dds_operators INTERFACE
-  holoscan::core RTIConnextDDS::cpp2_api Threads::Threads)
-
-add_subdirectory(applications/shapes_demo_flatbuffers)
-add_subdirectory(applications/shapes_demo_xcdr)
+include(ConnextDdsCodegen)
 add_subdirectory(applications/connext_shapes_holoviz)
+
 if(BUILD_TESTING)
-  add_subdirectory(tests)
+  add_test(NAME connext_shapes_holoviz_help
+    COMMAND $<TARGET_FILE:connext_shapes_holoviz> --help)
+  set_tests_properties(connext_shapes_holoviz_help PROPERTIES
+    PASS_REGULAR_EXPRESSION "Holoscan 4.6 RTI Shapes")
+
+  add_test(NAME connext_shapes_holoviz_headless
+    COMMAND $<TARGET_FILE:connext_shapes_holoviz>
+      --headless --samples 40 --domain-id 42)
+  set_tests_properties(connext_shapes_holoviz_headless PROPERTIES
+    PASS_REGULAR_EXPRESSION "Published 40 black Square samples"
+    TIMEOUT 30)
 endif()
