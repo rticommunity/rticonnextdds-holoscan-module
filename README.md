@@ -38,6 +38,64 @@ Distribution Service (DDS) standard, Connext provides:
 - A modular architecture that keeps applications decoupled and easier to
   evolve.
 
+## Quick start: Shapes with Holoviz
+
+The fastest way to verify the integration is the `connext_shapes_holoviz`
+reference application. It generates a moving black square locally, displays it
+with Holoviz, and publishes it with the standard RTI Shapes Demo DDS type. The
+same application subscribes to external `Square`, `Circle`, and `Triangle`
+topics and displays those samples as they arrive.
+
+All commands below build and run inside Docker. No Holoscan or Connext
+installation is required on the host.
+
+From the module repository root, provide the EA2 SDK installation and the
+ignored RTI license file:
+
+```bash
+export HOLOSCAN_CLI=./.venv-holoscan-cli/bin/holoscan
+export HOLOSCAN_SDK_ROOT=/Users/juanca/dgx-holo5/holoscan5-ea-private/ea2/holoscan-sdk/install-aarch64
+test -s rti_license.dat
+```
+
+Build the application image and compile the application in the EA2 container:
+
+```bash
+$HOLOSCAN_CLI build-container connext_shapes_holoviz
+$HOLOSCAN_CLI build connext_shapes_holoviz \
+  --no-docker-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+```
+
+On a host without a graphical display, run the headless mode. It uses a virtual
+display and exits cleanly when interrupted with `Ctrl+C`:
+
+```bash
+$HOLOSCAN_CLI run connext_shapes_holoviz headless_square \
+  --no-docker-build --no-local-build \
+  --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+```
+
+With a graphical display available, use `square`, `circle`, or `triangle`:
+
+```bash
+$HOLOSCAN_CLI run connext_shapes_holoviz square \
+  --no-docker-build --no-local-build \
+  --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+```
+
+To demonstrate interoperability, run another instance configured as an
+external publisher, or use RTI Shapes Demo, with the same domain and topic. For
+example, a second application instance can publish a red circle:
+
+```bash
+$HOLOSCAN_CLI run connext_shapes_holoviz circle \
+  --no-docker-build --no-local-build \
+  --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+```
+
+The local square is rendered directly by Holoviz. Samples received from the
+external DDS publisher are rendered separately with a dark-blue outline.
+
 ## What can you do with this module?
 
 The module provides reusable C++ publish and subscribe operators for
@@ -59,7 +117,7 @@ Choose the section that matches what you want to do:
 
 | Goal | Read this |
 | --- | --- |
-| Build the repository and run a first test | [Container quick start](#container-quick-start) |
+| Build the repository and run a first test | [Shapes + Holoviz quick start](#quick-start-shapes-with-holoviz) |
 | Understand the DDS and Holoscan terminology | [Concepts and terminology](#concepts-and-terminology) |
 | Understand the publisher operator | [Publisher operator](docs/operators/publisher.md) |
 | Understand the subscriber operator | [Subscriber operator](docs/operators/subscriber.md) |
@@ -212,7 +270,7 @@ control. The quick start downloads it from inside the development container
 into the ignored `build-ea2` directory and passes its path through
 `RTI_LICENSE_FILE` at runtime.
 
-## Container quick start
+## Advanced container workflow
 
 ## Holoscan CLI workflow
 
