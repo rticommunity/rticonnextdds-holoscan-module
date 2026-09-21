@@ -54,7 +54,11 @@ use a public GAR image, so build the SDK from the private NVIDIA EA2 source tree
 using NVIDIA's container workflow:
 
 ```bash
-cd /path/to/holoscan-sdk
+git clone --branch v5.0.0-ea2 --depth 1 \
+  https://github.com/nvidia-holoscan/holoscan-sdk.git \
+  holoscan-sdk
+
+cd holoscan-sdk
 ./run build --arch arm64 --cudaarchs <cuda-architecture> --sccache false
 ```
 
