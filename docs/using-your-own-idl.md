@@ -1,7 +1,7 @@
 # Using your own IDL
 
 This guide adds one generated Connext type to a Holoscan application. Complete
-the [container quick start](../README.md#container-quick-start) before using
+the [EA2 quick start](../README.md#quick-start-shapes-with-holoviz) before using
 it.
 
 The current repository is an in-tree prototype. The CMake helper is consumed
@@ -28,9 +28,11 @@ files in source control.
 
 ## 2. Generate the C++ type from CMake
 
-Add the IDL target to `CMakeLists.txt`:
+Add the module CMake helper and the IDL target to `CMakeLists.txt`:
 
 ```cmake
+include(cmake/RTIConnextDDSGenerateIdl.cmake)
+
 rti_holoscan_add_idl(
     TARGET robot_state_types
     IDL path/to/idl/RobotState.idl
@@ -77,8 +79,7 @@ the Holoscan graph carries.
 
 ### Option A: an existing Holoscan payload
 
-Use this when only selected DDS fields belong in the graph. The two-IDL
-example maps a scalar graph value to a larger DDS sample:
+Use this when only selected DDS fields belong in the graph. This example maps a scalar Holoscan value to a larger DDS sample:
 
 ```cpp
 struct RobotStateAdapter {
@@ -100,7 +101,7 @@ struct RobotStateAdapter {
 };
 ```
 
-This is simple but intentionally exposes only `sequence` to the graph.
+This is simple but intentionally exposes only `sequence` to the graph. The other DDS fields are filled by the adapter and are not available to downstream Holoscan operators.
 
 ### Option B: a typed FlatBuffers Holoscan payload
 
@@ -123,7 +124,9 @@ record opaque data.
 
 The graph carries a bounded host `Tensor<uint8_t>`. The application serializes
 the generated sample at the graph boundary and deserializes it before reading
-fields. No companion FlatBuffers field model is required.
+fields. No companion FlatBuffers field model is required. This avoids duplicating
+the schema in the Holoscan graph, but the DDS endpoint still depends on the
+generated `robot::RobotState` type and its generated serializer functions.
 
 The complete reference is the
 [XCDR Shapes example](../applications/shapes_demo_xcdr/README.md).
@@ -177,8 +180,9 @@ const auto subscriber = graph.op<RobotSubscriber>(
     });
 ```
 
-Both processes must have access to `RobotQos.xml`. See
-[endpoint configuration](operators/configuration.md).
+Both processes must have access to `RobotQos.xml`. The file is resolved from
+the process working directory unless `qos_file` is an absolute path. The XML
+library and profile names must match exactly. See [endpoint configuration](operators/configuration.md).
 
 ## 6. Connect the graph ports
 
