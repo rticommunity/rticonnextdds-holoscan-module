@@ -50,7 +50,9 @@ using Publisher = rti::holoscan::dds::PublisherOp<ShapeTypeExtended, rti::holosc
 using Subscriber = rti::holoscan::dds::SubscriberOp<ShapeTypeExtended, rti::holoscan::example::ShapeAdapter>;
 using namespace std::chrono_literals;
 
-constexpr std::int32_t kCanvas = 256;
+constexpr std::int32_t kLogicalCanvas = 256;
+constexpr std::int32_t kRenderScale = 3;
+constexpr std::int32_t kCanvas = kLogicalCanvas * kRenderScale;
 constexpr std::int32_t kShapeSize = 30;
 constexpr std::array<std::string_view, 3> kTopics{"Square", "Circle", "Triangle"};
 std::atomic_bool stop_requested{false};
@@ -103,7 +105,13 @@ rti::holoscan::dds::EndpointConfig endpoint(std::uint32_t domain, std::string to
 
 class BouncingShapeSource final : public holoscan::Operator<> {
  public:
-  BouncingShapeSource(std::string color) : color_(std::move(color)) {}
+  BouncingShapeSource(std::string color, std::string_view topic) : color_(std::move(color)) {
+    if (topic == "Circle") {
+      x_ = 180.F; y_ = 180.F; vx_ = 0.8F; vy_ = 0.6F;
+    } else if (topic == "Triangle") {
+      x_ = 64.F; y_ = 190.F; vx_ = 2.2F; vy_ = -1.2F;
+    }
+  }
   void setup(holoscan::OperatorSpec& spec) override { spec.output(output, "output").max_emits_per_compute(1U); }
   [[nodiscard]] holoscan::Contract contract() const override {
     holoscan::Contract result;
@@ -112,7 +120,7 @@ class BouncingShapeSource final : public holoscan::Operator<> {
   }
   [[nodiscard]] holoscan::expected<void, holoscan::Error> compute(holoscan::ExecutionContext&) override {
     constexpr float lower = static_cast<float>(kShapeSize / 2);
-    constexpr float upper = static_cast<float>(kCanvas - kShapeSize / 2);
+    constexpr float upper = static_cast<float>(kLogicalCanvas - kShapeSize / 2);
     x_ += vx_;
     y_ += vy_;
     if (x_ <= lower || x_ >= upper) { vx_ = -vx_; x_ = std::clamp(x_, lower, upper); }
@@ -227,11 +235,13 @@ class ShapesCanvas final : public holoscan::Operator<> {
     if (!shape) return;
     const auto rgb = color(shape->color);
     constexpr std::array<std::uint8_t, 3> external_border{0, 0, 128};
-    const int radius = std::max(2, shape->shape_size / 2);
+    const int center_x = shape->x * kRenderScale;
+    const int center_y = shape->y * kRenderScale;
+    const int radius = std::max(2, shape->shape_size / 2) * kRenderScale;
     for (int dy = -radius; dy <= radius; ++dy) for (int dx = -radius; dx <= radius; ++dx) {
       if (!contains(topic, dx, dy, radius)) continue;
-      const bool inner = contains(topic, dx, dy, radius - 2);
-      put(pixels, shape->x + dx, shape->y + dy, external && !inner ? external_border : rgb);
+      const bool inner = contains(topic, dx, dy, radius - 2 * kRenderScale);
+      put(pixels, center_x + dx, center_y + dy, external && !inner ? external_border : rgb);
     }
   }
   std::string local_topic_;
@@ -242,7 +252,7 @@ int run(const Options& options) {
   auto publisher_config = endpoint(options.domain_id, options.publish_topic);
   publisher_config.wait_for_reader = false;
   holoscan::Graph graph{"connext-shapes-holoviz"};
-  const auto source = graph.op<BouncingShapeSource>("local-shape-source", options.publish_color);
+  const auto source = graph.op<BouncingShapeSource>("local-shape-source", options.publish_color, options.publish_topic);
   const auto publisher = graph.op<Publisher>("dds-shape-publisher", publisher_config);
   const auto published = graph.op<ShapeDiscard>("published-shape-discard");
   const auto square = graph.op<Subscriber>("dds-square-subscriber", endpoint(options.domain_id, "Square"));
