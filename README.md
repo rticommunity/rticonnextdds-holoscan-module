@@ -117,10 +117,9 @@ application-owned DDS types, CMake-driven Connext type generation from IDL,
 XML QoS configuration, and ready-to-run applications.
 
 
-The examples demonstrate two complementary integrations: typed FlatBuffers
-payloads for Holoscan-oriented applications and opaque XCDR byte Tensors for
-Connext-oriented applications. Everything is built, tested, and run in Docker,
-with no Connext or Holoscan installation required on the host.
+- The FlatBuffers example demonstrates typed payloads for Holoscan-oriented applications.
+- The XCDR example demonstrates opaque byte Tensor payloads for Connext-oriented applications.
+- Everything is built, tested, and run in Docker, with no Connext or Holoscan installation required on the host.
 
 The repository is currently an engineering prototype for Holoscan 5 EA2. It
 is not yet an installed or packaged production module. All builds and tests
