@@ -27,6 +27,8 @@ list(PREPEND CMAKE_MODULE_PATH "$ENV{NDDSHOME}/resource/cmake")
 find_package(RTIConnextDDS 7.7.0 REQUIRED)
 
 include(CTest)
+option(RTI_HOLOSCAN_ENABLE_VISUAL_TESTS
+  "Register the Docker/Xvfb Holoviz visual integration test" OFF)
 include(cmake/RTIConnextDDSGenerateIdl.cmake)
 
 add_library(rti_connext_dds_operators INTERFACE)

@@ -158,8 +158,25 @@ docker run --rm --runtime=nvidia --network=host \
   ctest --test-dir build-ea2 --output-on-failure
 ```
 
-The suite contains six tests: SDK/runtime smoke tests, generated-type tests,
-typed and XCDR adapter tests, and three real DDS integrations.
+By default, the suite contains five tests: SDK/runtime smoke tests,
+generated-type tests, the typed and XCDR adapter tests, and two real DDS
+integrations. The Docker/Xvfb Holoviz test is opt-in because it launches two
+additional containers and requires Docker orchestration access. Configure it
+with:
+
+```bash
+cmake -S . -B build-ea2 -G Ninja \
+  -DCMAKE_PREFIX_PATH=/opt/holoscan \
+  -DRTI_HOLOSCAN_ENABLE_VISUAL_TESTS=ON
+```
+
+Then run only the visual test from an environment that can access the Docker
+client and socket:
+
+```bash
+ctest --test-dir build-ea2 -R connext_shapes_holoviz_visual_integration \
+  --output-on-failure
+```
 
 ## Troubleshooting
 

@@ -74,7 +74,16 @@ black square plus external red circle and dark-blue outline. Captures are kept i
 build/rticonnextdds-holoscan-module/test-artifacts/connext_shapes_holoviz/
 ```
 
-Run it through CTest from the module container environment:
+Enable the visual test when configuring the build, because it launches two
+additional Docker containers and virtual displays:
+
+```bash
+cmake -S . -B build/rticonnextdds-holoscan-module \
+  -DRTI_HOLOSCAN_ENABLE_VISUAL_TESTS=ON
+```
+
+Then run it through CTest from an environment that can access the Docker
+client and socket:
 
 ```bash
 ctest --test-dir build/rticonnextdds-holoscan-module \

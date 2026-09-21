@@ -63,10 +63,12 @@ add_dds_pair_test(connext_shapes_demo_xcdr_integration
   "DDS XCDR subscriber received 20 ShapeTypeExtended samples" 12
   "${shapes_demo_xcdr_example_dir}")
 
-add_test(NAME connext_shapes_holoviz_visual_integration
-  COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/run_connext_shapes_holoviz_visual.sh"
-    "${connext_shapes_holoviz_test_image}" "${connext_shapes_holoviz_capture_dir}")
-set_tests_properties(connext_shapes_holoviz_visual_integration PROPERTIES
-  PASS_REGULAR_EXPRESSION "connext_shapes_holoviz visual DDS test passed"
-  TIMEOUT 45
-  LABELS "integration;visual;docker")
+if(RTI_HOLOSCAN_ENABLE_VISUAL_TESTS)
+  add_test(NAME connext_shapes_holoviz_visual_integration
+    COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/run_connext_shapes_holoviz_visual.sh"
+      "${connext_shapes_holoviz_test_image}" "${connext_shapes_holoviz_capture_dir}")
+  set_tests_properties(connext_shapes_holoviz_visual_integration PROPERTIES
+    PASS_REGULAR_EXPRESSION "connext_shapes_holoviz visual DDS test passed"
+    TIMEOUT 45
+    LABELS "integration;visual;docker")
+endif()
