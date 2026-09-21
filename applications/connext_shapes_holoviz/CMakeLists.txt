@@ -11,6 +11,7 @@ holoscan_add_flatbuffer_schema(TARGET connext_shapes_holoviz_payload_generated
   TRAITS_CANONICAL_NAME rti.holoscan.shapes.Shape TRAITS_SCHEMA_VERSION 1
   TRAITS_MAX_SERIALIZED_SIZE 512)
 configure_file(HoloscanConnextQos.xml "${CMAKE_CURRENT_BINARY_DIR}/HoloscanConnextQos.xml" COPYONLY)
+configure_file("${CMAKE_SOURCE_DIR}/scripts/require_rti_license.sh" "${CMAKE_CURRENT_BINARY_DIR}/require_rti_license.sh" COPYONLY)
 
 add_executable(connext_shapes_holoviz main.cpp)
 add_dependencies(connext_shapes_holoviz connext_shapes_holoviz_payload_generated)

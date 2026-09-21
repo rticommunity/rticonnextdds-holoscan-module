@@ -11,6 +11,7 @@
 
 rti_holoscan_add_idl(TARGET shapes_demo_xcdr_dds_types IDL "$ENV{NDDSHOME}/resource/idl/ShapeType.idl")
 configure_file(HoloscanConnextQos.xml "${CMAKE_CURRENT_BINARY_DIR}/HoloscanConnextQos.xml" COPYONLY)
+configure_file("${CMAKE_SOURCE_DIR}/scripts/require_rti_license.sh" "${CMAKE_CURRENT_BINARY_DIR}/require_rti_license.sh" COPYONLY)
 
 foreach(role IN ITEMS publisher subscriber)
   add_executable(connext_shapes_demo_xcdr_${role} ${role}.cpp)

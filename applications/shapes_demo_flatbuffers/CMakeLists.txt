@@ -24,6 +24,7 @@ holoscan_add_flatbuffer_schema(TARGET shapes_demo_payload_generated
 
 set(shapes_demo_flatbuffers_example_dir "${CMAKE_CURRENT_BINARY_DIR}")
 configure_file(HoloscanConnextQos.xml "${shapes_demo_flatbuffers_example_dir}/HoloscanConnextQos.xml" COPYONLY)
+configure_file("${CMAKE_SOURCE_DIR}/scripts/require_rti_license.sh" "${shapes_demo_flatbuffers_example_dir}/require_rti_license.sh" COPYONLY)
 foreach(role IN ITEMS publisher subscriber)
   add_executable(connext_shapes_demo_flatbuffers_${role} ${role}.cpp)
   add_dependencies(connext_shapes_demo_flatbuffers_${role} shapes_demo_payload_generated)

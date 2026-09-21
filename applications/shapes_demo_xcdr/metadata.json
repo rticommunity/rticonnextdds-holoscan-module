@@ -29,14 +29,14 @@
       "publisher": {
         "description": "Run the Shapes XCDR publisher",
         "run": {
-          "command": "<holohub_app_bin>/connext_shapes_demo_xcdr_publisher",
+          "command": "bash -lc \"bash <holohub_app_bin>/require_rti_license.sh && exec <holohub_app_bin>/connext_shapes_demo_xcdr_publisher\"",
           "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"
         }
       },
       "subscriber": {
         "description": "Run the Shapes XCDR subscriber",
         "run": {
-          "command": "<holohub_app_bin>/connext_shapes_demo_xcdr_subscriber",
+          "command": "bash -lc \"bash <holohub_app_bin>/require_rti_license.sh && exec <holohub_app_bin>/connext_shapes_demo_xcdr_subscriber\"",
           "workdir": "holohub_app_bin", "docker_run_args": "-v $PWD/rti_license.dat:/workspace/rticonnextdds_holoscan_module/rti_license.dat:ro -e RTI_LICENSE_FILE=/workspace/rticonnextdds_holoscan_module/rti_license.dat"
         }
       }
