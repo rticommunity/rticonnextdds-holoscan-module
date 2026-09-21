@@ -59,7 +59,8 @@ git clone --branch v5.0.0-ea2 --depth 1 \
   holoscan-sdk
 
 cd holoscan-sdk
-./run build --arch arm64 --cudaarchs <cuda-architecture> --sccache false
+export HOLOSCAN_ARCH=arm64  # use amd64 on x86_64
+./run build --arch "$HOLOSCAN_ARCH" --cudaarchs <cuda-architecture> --sccache false
 ```
 
 This produces the `holoscan-sdk-build-aarch64:v5.0.0-ea2` image and an
