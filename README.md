@@ -98,19 +98,24 @@ DDS samples:
 **Terminal 1 — black square:**
 
 ```bash
-$HOLOSCAN_CLI run connext_shapes_holoviz square \
-  --no-docker-build --no-local-build \
-  --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+$HOLOSCAN_CLI run connext_shapes_holoviz square --local-sdk-root "$HOLOSCAN_SDK_ROOT"
 ```
 
 **Terminal 2 — red circle:**
 
-$HOLOSCAN_CLI run connext_shapes_holoviz square --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+```bash
+$HOLOSCAN_CLI run connext_shapes_holoviz circle --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+```
 
 The two instances exchange Shapes samples through Connext DDS and display both
 the locally generated and received shapes in Holoviz.
-$HOLOSCAN_CLI run connext_shapes_holoviz circle --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+
+## What can you do with this module?
+
+The module provides reusable C++ publish and subscribe operators for
+application-owned DDS types, CMake-driven Connext type generation from IDL,
 XML QoS configuration, and ready-to-run applications.
+
 
 The examples demonstrate two complementary integrations: typed FlatBuffers
 payloads for Holoscan-oriented applications and opaque XCDR byte Tensors for
