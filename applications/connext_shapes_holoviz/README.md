@@ -27,7 +27,7 @@ remains wire-compatible with RTI Shapes Demo.
 
 ## Holoscan CLI workflow
 
-`metadata.json` exposes `square`, `circle`, `triangle`, and `headless_square` as first-class Holoscan CLI modes:
+`metadata.json` exposes `square`, `circle`, `triangle`, `headless_square`, and `headless_circle` as first-class Holoscan CLI modes:
 
 ```bash
 export HOLOSCAN_CLI=./.venv-holoscan-cli/bin/holoscan
@@ -37,9 +37,9 @@ $HOLOSCAN_CLI build connext_shapes_holoviz --no-docker-build --local-sdk-root "$
 $HOLOSCAN_CLI run connext_shapes_holoviz headless_square --no-docker-build --no-local-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
 ```
 
-Use `square`, `circle`, or `triangle` instead of `headless_square` when a real display is available. To demonstrate DDS exchange, run `square` and `circle` in separate terminals or run one side against RTI Shapes Demo. The CLI mounts the ignored project-root `rti_license.dat` into the container.
+Use `square`, `circle`, or `triangle` instead of the headless modes when a real display is available. The normal modes open a Holoviz window on that display; the headless modes create a virtual Xvfb display inside the container. To demonstrate DDS exchange, run `square` and `circle` in separate terminals or run one side against RTI Shapes Demo. The CLI mounts the ignored project-root `rti_license.dat` into the container.
 
-Complete the root [container quick start](../../README.md#container-quick-start),
+Complete the root [container quick start](../../README.md#quick-start-shapes-with-holoviz),
 then run the application from the module build directory inside the module container:
 
 ```bash

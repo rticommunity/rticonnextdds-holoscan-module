@@ -172,7 +172,7 @@ $HOLOSCAN_CLI run shapes_demo_xcdr publisher --no-docker-build --no-local-build 
 
 The CLI mounts the ignored project-root `rti_license.dat` into the application container.
 
-Complete the [root container quick start](../../README.md#container-quick-start)
+Complete the [root container quick start](../../README.md#quick-start-shapes-with-holoviz)
 and retain its `MODULE_ROOT` and `HOLOSCAN_INSTALL` variables.
 
 Open two Bash terminals. Start the subscriber in terminal 1:
