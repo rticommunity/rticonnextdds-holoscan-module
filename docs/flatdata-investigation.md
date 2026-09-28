@@ -26,11 +26,28 @@ Adding `@mutable` allowed code generation for a type containing the Shapes
 fields. The generated type is a FlatData sample and includes the expected
 `rti/topic/flat/FlatData.hpp` support.
 
+The generated code also compiled successfully when using the RTI platform
+definitions and include paths from the module CMake configuration.
+
+## Interoperability experiment
+
+Two container-only tests were run on domain 0 with the same `Square` topic:
+
+- Standard `ShapeTypeExtended` writer -> experimental FlatData reader:
+  `FLAT_READER_NO_SAMPLE`.
+- Experimental FlatData writer -> standard `ShapeTypeExtended` reader:
+  `PLAIN_READER_NO_SAMPLE`.
+
+Both applications created their DDS entities and the FlatData writer built a
+sample successfully, but no sample crossed the type boundary in either
+direction. The current experimental type is therefore not interoperable with
+the regular Shapes Demo type as generated.
+
 ## Current blockers
 
-1. The standard `ShapeTypeExtended` is extensible and inherited. The experimental
-   FlatData type must be checked for DDS type assignability and wire
-   interoperability with the external Shapes Demo.
+1. The standard `ShapeTypeExtended` is extensible and inherited. The first
+   mutable FlatData definition generated from the same fields did not exchange
+   samples with the regular Shapes type in either direction.
 2. A Holoscan Tensor cannot expose a reader loan and immediately release it.
    The Tensor wrapper must retain the `LoanedSamples` owner until downstream
    operators finish consuming the buffer.
