@@ -7,6 +7,12 @@ it.
 The current repository is an in-tree prototype. The CMake helper is consumed
 from this source tree; it is not yet available through an installed package.
 
+This guide describes the integration points that belong in your application.
+The module does not translate an arbitrary IDL directly into a Holoscan graph:
+generated DDS types and Holoscan payloads are separate contracts, and the
+application owns the adapter between them. Keep the IDL, payload schema,
+adapter, QoS profile, and tests in sync as the data model changes.
+
 ## 1. Add the IDL to the application
 
 For example, create `idl/RobotState.idl`:
@@ -116,6 +122,13 @@ The complete reference is the
 This provides the best typed Holoscan experience but requires maintaining or
 generating the companion schema and mapping.
 
+Choose the payload boundary deliberately. A generated DDS class is not, by
+itself, a valid Holoscan graph payload, and providing only an IDL and a QoS
+profile is not sufficient for the operators to know how fields should be
+represented in the graph. If the application only needs a subset of fields,
+Option A can keep the adapter small; if downstream operators need field-level
+access, use Option B and map the fields explicitly.
+
 ## 4. Instantiate publisher and subscriber types
 
 ```cpp
@@ -192,3 +205,8 @@ subscriber application before the publisher. Confirm:
 
 For complex IDL, add tests covering nested members, variable-length members,
 enums, optional members, and maximum expected serialized sizes.
+
+The same process applies to an application that only publishes or only
+subscribes: generate the DDS type, define the Holoscan payload and adapter for
+the direction you need, configure compatible endpoints, and validate the
+mapping in the containerized application.

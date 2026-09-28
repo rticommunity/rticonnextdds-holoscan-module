@@ -244,6 +244,26 @@ Holoscan ShapeT <-> ShapeAdapter <-> DDS ShapeTypeExtended
 See [Choosing a payload boundary](#choosing-a-payload-boundary) before adding
 your own data model.
 
+### Integration constraints
+
+This module provides a reference integration, not an automatic IDL-to-Holoscan
+transport generator. For an application-owned data type, the application must
+provide:
+
+- a C++ type generated from its Connext IDL;
+- a Holoscan graph payload admitted by the operators in that graph; and
+- an adapter that explicitly maps the payload to and/or from the generated DDS
+  type.
+
+The DDS endpoints must also agree on the domain, topic name, compatible type
+metadata, and requested/offered QoS. The XML QoS file and the generated type
+support must be available inside the container at build and runtime. Changes
+to an IDL normally require updating the generated type, the adapter, any
+companion Holoscan schema, and the integration tests together.
+
+For a step-by-step example, including the CMake code-generation helper and the
+two supported payload-boundary choices, see [Using your own IDL](docs/using-your-own-idl.md).
+
 ## Requirements
 
 The validated ARM64 development setup uses:
@@ -294,7 +314,8 @@ Holoscan ShapeT <-> ShapeAdapter <-> DDS ShapeTypeExtended
 
 Use a companion FlatBuffers schema when Holoscan operators need to inspect or
 transform individual DDS fields. The schema and adapter must evolve together
-when the application data model changes.
+when the application data model changes. The module does not infer this schema
+or generate the mapping automatically.
 
 ## Current limitations
 
