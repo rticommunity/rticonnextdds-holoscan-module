@@ -50,11 +50,8 @@ class PublisherOp final : public ::holoscan::Operator<> {
       spec.input(input, "input")
           .queue_depth(32U)
           .expects_tensor(Adapter::tensor_input_spec());
-      spec.output(published, "published")
-          .produces_tensor(Adapter::tensor_output_spec());
     } else {
       spec.input(input, "input").queue_depth(32U);
-      spec.output(published, "published");
     }
   }
 
@@ -125,7 +122,7 @@ class PublisherOp final : public ::holoscan::Operator<> {
 
     try {
       writer_->write(Adapter::to_dds(*value));
-      return published.emit(std::move(*value));
+      return {};
     } catch (const std::exception& error) {
       return ::holoscan::make_unexpected(::holoscan::Error{
           ::holoscan::ErrorCode::kFailure, std::string{"DDS publish failed: "} + error.what()});
@@ -136,7 +133,6 @@ class PublisherOp final : public ::holoscan::Operator<> {
   }
 
   ::holoscan::Input<PortType> input;
-  ::holoscan::Output<PortType> published;
 
  private:
   EndpointConfig config_;

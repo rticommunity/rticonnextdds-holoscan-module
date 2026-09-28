@@ -3,7 +3,8 @@
 The module provides two reusable C++ Holoscan operators:
 
 - [PublisherOp](publisher.md) converts a Holoscan payload into a generated DDS
-  sample and publishes it.
+  sample and publishes it. DDS publication is an external side effect; the
+  operator has no Holoscan output port.
 - [SubscriberOp](subscriber.md) receives a generated DDS sample and converts
   it into a Holoscan payload.
 

@@ -14,30 +14,23 @@
 #include <array>
 #include <chrono>
 #include <condition_variable>
-#include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <mutex>
-#include <string>
-#include <utility>
 
-#include <holoscan/core/execution_context.hpp>
-#include <holoscan/core/operator.hpp>
-#include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/run.hpp>
-#include <holoscan/core/temporal_contract.hpp>
 
 #include "shape_schema_traits.hpp"
 
-namespace rti::holoscan::example {
-
-using ShapesPayload = ::rti::holoscan::shapes::ShapeT;
-using namespace std::chrono_literals;
+namespace rti::holoscan::example::testing {
 
 inline constexpr std::uint32_t kShapeSampleCount = 20U;
 
-class ShapeObservation {
+// Checks the fixed sample sequence used by this example, not arbitrary Shapes Demo input.
+class ShapeSampleVerifier {
  public:
+  using ShapePayload = ::rti::holoscan::shapes::ShapeT;
+
   static void reset() noexcept {
     const std::lock_guard lock{mutex_};
     received_ = 0U;
@@ -45,7 +38,7 @@ class ShapeObservation {
     seen_.fill(false);
   }
 
-  static void record(const ShapesPayload& shape) {
+  static void record(const ShapePayload& shape) {
     {
       const std::lock_guard lock{mutex_};
       static constexpr std::array<const char*, 3U> colors{"BLUE", "ORANGE", "PURPLE"};
@@ -86,73 +79,9 @@ class ShapeObservation {
   static inline bool valid_{true};
 };
 
-class ShapeSource final : public ::holoscan::Operator<> {
- public:
-  void setup(::holoscan::OperatorSpec& spec) override {
-    spec.output(output, "output").max_emits_per_compute(1U);
-  }
-
-  [[nodiscard]] ::holoscan::Contract contract() const override {
-    ::holoscan::Contract result;
-    result.trigger(::holoscan::OnClock{.period = 20ms});
-    return result;
-  }
-
-  [[nodiscard]] ::holoscan::expected<void, ::holoscan::Error> compute(
-      ::holoscan::ExecutionContext&) override {
-    if (emitted_ >= kShapeSampleCount) {
-      return {};
-    }
-
-    static constexpr std::array<const char*, 3U> colors{"BLUE", "ORANGE", "PURPLE"};
-    ShapesPayload shape;
-    shape.color = colors[emitted_ % colors.size()];
-    shape.x = 20 + static_cast<std::int32_t>(emitted_ * 5U);
-    shape.y = 30 + static_cast<std::int32_t>(emitted_ * 3U);
-    shape.shape_size = 24 + static_cast<std::int32_t>(emitted_ % 8U);
-    shape.fill_kind = ::rti::holoscan::shapes::ShapeFillKind_Solid;
-    shape.angle = static_cast<float>(emitted_) * 2.5F;
-    ++emitted_;
-    return output.emit(std::move(shape));
-  }
-
-  ::holoscan::Output<ShapesPayload> output;
-
- private:
-  std::uint32_t emitted_{0U};
-};
-
-class ShapeSink final : public ::holoscan::Operator<> {
- public:
-  void setup(::holoscan::OperatorSpec& spec) override {
-    spec.input(input, "input").queue_depth(32U);
-  }
-
-  [[nodiscard]] ::holoscan::Contract contract() const override {
-    ::holoscan::Contract result;
-    result.trigger(::holoscan::OnEach{input});
-    return result;
-  }
-
-  [[nodiscard]] ::holoscan::expected<void, ::holoscan::Error> compute(
-      ::holoscan::ExecutionContext&) override {
-    auto shape = input.receive_data();
-    if (!shape) {
-      return ::holoscan::make_unexpected(std::move(shape).error());
-    }
-    std::cout << "ShapeTypeExtended: color=" << shape->color << " x=" << shape->x
-              << " y=" << shape->y << " size=" << shape->shape_size
-              << " angle=" << shape->angle << '\n';
-    ShapeObservation::record(*shape);
-    return {};
-  }
-
-  ::holoscan::Input<ShapesPayload> input;
-};
-
-inline int finish_shapes_run(::holoscan::RunSession& session,
-                             bool complete,
-                             const char* success_message) {
+inline int finish_verified_shapes_run(::holoscan::RunSession& session,
+                                      bool complete,
+                                      const char* success_message) {
   session.request_stop();
   session.wait();
   if (!complete || session.termination() != ::holoscan::RunTermination::kStopped ||
@@ -166,4 +95,4 @@ inline int finish_shapes_run(::holoscan::RunSession& session,
   return 0;
 }
 
-}  // namespace rti::holoscan::example
+}  // namespace rti::holoscan::example::testing

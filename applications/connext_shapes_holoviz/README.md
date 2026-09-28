@@ -14,6 +14,13 @@ The application owns its FlatBuffers schema, adapter, and QoS XML. It uses the
 standard `ShapeType.idl` provided by the installed Connext distribution, so it
 remains wire-compatible with RTI Shapes Demo.
 
+## Read the code
+
+Start with `main.cpp` for CLI options and graph connections. Then read
+`bouncing_shape_source.hpp` for local generation, `shape_adapter.hpp` for the
+FlatBuffers to DDS mapping, and `shape_renderer.hpp` for the RGBA frame sent to
+Holoviz. `shape_display_config.hpp` holds the example's logical canvas and render scale.
+
 ## Behavior
 
 - By default it publishes a black `Square` on domain `0`.
