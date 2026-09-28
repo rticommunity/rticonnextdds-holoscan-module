@@ -28,7 +28,38 @@ common=(--runtime=nvidia --net host --ipc host -u "$(id -u):$(id -g)"
   -w "${container_build_dir}/applications/connext_shapes_holoviz"
   -e HOME="${workspace}" -e HOLOSCAN_LIB_PATH="${sdk}/lib"
   -e LD_LIBRARY_PATH="${sdk}/lib")
-cleanup() { docker rm -f "${local_name}" "${external_name}" >/dev/null 2>&1 || true; }
+cleanup() {
+  local names=("${local_name}" "${external_name}")
+  local name
+  local deadline=$((SECONDS + 15))
+
+  # Let the applications follow the same graceful path as Ctrl+C first.
+  for name in "${names[@]}"; do
+    if [[ "$(docker inspect --format '{{.State.Running}}' "${name}" 2>/dev/null || true)" == true ]]; then
+      docker kill --signal=INT "${name}" >/dev/null 2>&1 || true
+    fi
+  done
+
+  while (( SECONDS < deadline )); do
+    local running=false
+    for name in "${names[@]}"; do
+      if [[ "$(docker inspect --format '{{.State.Running}}' "${name}" 2>/dev/null || true)" == true ]]; then
+        running=true
+        break
+      fi
+    done
+    [[ "${running}" == false ]] && break
+    sleep 1
+  done
+
+  # A broken process must not leave the test hanging forever.
+  for name in "${names[@]}"; do
+    if [[ "$(docker inspect --format '{{.State.Running}}' "${name}" 2>/dev/null || true)" == true ]]; then
+      docker stop --time 5 "${name}" >/dev/null 2>&1 || true
+    fi
+    docker rm -f "${name}" >/dev/null 2>&1 || true
+  done
+}
 trap cleanup EXIT
 
 docker run -d --name "${local_name}" "${common[@]}" "${image}" bash -lc \
