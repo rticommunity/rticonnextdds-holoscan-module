@@ -66,26 +66,56 @@ It may instead be paired with RTI Shapes Demo on the same domain. External
 
 ## Headless visual test
 
-`connext_shapes_holoviz_visual_integration` starts two containerized instances
-on virtual displays, captures both Holoviz windows, and validates the local
-black square plus external red circle and dark-blue outline. Captures are kept in:
+This is an opt-in integration test, separate from the normal CTest suite. It
+starts two application containers, creates one Xvfb display in each container,
+captures both Holoviz windows, and checks that each image contains the local
+black square, the external red circle, and the dark-blue external outline. No
+physical monitor or `DISPLAY` variable is required.
+
+The test does require Docker orchestration access from the shell that launches
+it. In particular, the shell must have the Docker CLI, access to the Docker
+daemon, and the host paths used below must be visible to that daemon. A failure
+to meet those requirements is an infrastructure failure, not a Holoviz image
+validation failure.
+
+Captures are kept in:
 
 ```text
 build/rticonnextdds-holoscan-module/test-artifacts/connext_shapes_holoviz/
 ```
 
-Enable the visual test when configuring the build, because it launches two
-additional Docker containers and virtual displays:
+Prepare the CLI image and the host paths first:
 
 ```bash
-cmake -S . -B build/rticonnextdds-holoscan-module \
-  -DRTI_HOLOSCAN_ENABLE_VISUAL_TESTS=ON
+export MODULE_ROOT="$PWD"
+export HOLOSCAN_SDK_ROOT="$MODULE_ROOT/holoscan-sdk/install-aarch64"
+export HOST_WORKSPACE="$MODULE_ROOT"
+export HOST_SDK_ROOT="$HOLOSCAN_SDK_ROOT"
+test -s "$HOST_WORKSPACE/rti_license.dat"
+test -f "$HOST_SDK_ROOT/lib/cmake/holoscan/holoscan-full-config.cmake"
+$HOLOSCAN_CLI build connext_shapes_holoviz \
+  --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+export HOST_BUILD_DIR="$MODULE_ROOT/build/connext_shapes_holoviz"
+test -x "$HOST_BUILD_DIR/applications/connext_shapes_holoviz/connext_shapes_holoviz"
 ```
 
-Then run it through CTest from an environment that can access the Docker
-client and socket:
+Select the EA2 image explicitly and run the visual test directly:
 
 ```bash
-ctest --test-dir build/rticonnextdds-holoscan-module \
-  -R connext_shapes_holoviz_visual_integration --output-on-failure
+IMAGE=rticonnextdds-holoscan-module-connext_shapes_holoviz:ea-2
+docker image inspect "$IMAGE" >/dev/null
+
+HOST_BUILD_DIR="$HOST_BUILD_DIR" bash tests/run_connext_shapes_holoviz_visual.sh \
+  "$IMAGE" \
+  build/rticonnextdds-holoscan-module/test-artifacts/connext_shapes_holoviz
 ```
+
+Success prints `connext_shapes_holoviz visual DDS test passed` and produces
+`local.png` and `external.png` in the artifact directory. The script also
+checks the expected colors and fails if either application exits or reports a
+Holoscan runtime callback error. It does not open a window on the host.
+
+The CTest target `connext_shapes_holoviz_visual_integration` invokes the same
+script, but is intentionally not enabled by default because it launches nested
+Docker containers. Use the direct command above for the predictable user
+workflow.

@@ -5,8 +5,14 @@ image=${1:?image argument required}
 artifact_relative=${2:?artifact relative path required}
 host_workspace=${HOST_WORKSPACE:?HOST_WORKSPACE must be the host path to this repository}
 host_sdk_root=${HOST_SDK_ROOT:?HOST_SDK_ROOT must be the host path to the EA2 SDK}
+host_build_dir=${HOST_BUILD_DIR:-${host_workspace}/build/rticonnextdds-holoscan-module}
+case "${host_build_dir}" in
+  "${host_workspace}"/*) build_relative=${host_build_dir#"${host_workspace}"/} ;;
+  *) echo "HOST_BUILD_DIR must be inside HOST_WORKSPACE" >&2; exit 2 ;;
+esac
 workspace=/workspace/rticonnextdds_holoscan_module
 sdk=/workspace/holoscan-sdk
+container_build_dir="${workspace}/${build_relative}"
 host_artifact_dir="${host_workspace}/${artifact_relative}"
 artifact_dir="${host_artifact_dir}"
 local_name="connext-holoviz-local-${$}"
@@ -19,7 +25,7 @@ common=(--runtime=nvidia --net host --ipc host -u "$(id -u):$(id -g)"
   -v "${host_sdk_root}:${sdk}:ro"
   -v "${host_workspace}/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
   -v "${host_artifact_dir}:/artifacts"
-  -w "${workspace}/build/rticonnextdds-holoscan-module/applications/connext_shapes_holoviz"
+  -w "${container_build_dir}/applications/connext_shapes_holoviz"
   -e HOME="${workspace}" -e HOLOSCAN_LIB_PATH="${sdk}/lib"
   -e LD_LIBRARY_PATH="${sdk}/lib")
 cleanup() { docker rm -f "${local_name}" "${external_name}" >/dev/null 2>&1 || true; }
