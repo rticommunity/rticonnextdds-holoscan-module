@@ -43,6 +43,17 @@ sample successfully, but no sample crossed the type boundary in either
 direction. The current experimental type is therefore not interoperable with
 the regular Shapes Demo type as generated.
 
+## Why the first type is incompatible
+
+DDS compatibility is based on the XTypes definition, not only on matching field
+names. The regular Shapes definition is an extensible inherited type. rtiddsgen
+rejects applying `(FLAT_DATA)` to that hierarchy unless every
+base is also FlatData and uses mutable or final extensibility. Marking the
+hierarchy mutable makes it generate, but changes its extensibility and generated
+wire type from the regular Shapes definition. The generated mutable hierarchy
+therefore cannot be treated as the same type as the standard external
+`ShapeTypeExtended`.
+
 ## Current blockers
 
 1. The standard `ShapeTypeExtended` is extensible and inherited. The first
