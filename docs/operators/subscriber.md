@@ -40,8 +40,7 @@ static holoscan_type from_dds(const DdsType& sample);
 ```
 
 If `holoscan_type` is `holoscan::Tensor`, the adapter must additionally
-provide `tensor_output_spec()`. The XCDR example also supplies
-`tensor_input_spec()` because its application decodes that output later.
+provide `tensor_output_spec()` to declare its tensor contract.
 
 ## Constructor
 
@@ -121,10 +120,9 @@ examples.
 - **The graph does not compile:** the adapter output is not an admitted
   Holoscan payload or its Tensor contract disagrees with the consumer.
 - **Conversion fails:** `Adapter::from_dds()` rejected or could not decode the
-  sample. The XCDR example reports malformed or oversized buffers this way.
+  sample.
 - **Shutdown hangs:** treat it as a bug; the guard condition is intended to
   wake and join the DDS wait thread deterministically.
 
 For complete applications, see
-[`connext_shapes_demo_flatbuffers_subscriber`](../../applications/shapes_demo_flatbuffers/subscriber.cpp) and
-[`connext_shapes_demo_xcdr_subscriber`](../../applications/shapes_demo_xcdr/subscriber.cpp).
+[`connext_shapes_demo_flatbuffers_subscriber`](../../applications/shapes_demo_flatbuffers/subscriber.cpp).

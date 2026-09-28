@@ -1,11 +1,17 @@
 # Using your own IDL
 
 This guide adds one generated Connext type to a Holoscan application. Complete
-the [container quick start](../README.md#container-quick-start) before using
+the [EA2 quick start](../README.md#quick-start-shapes-with-holoviz) before using
 it.
 
 The current repository is an in-tree prototype. The CMake helper is consumed
 from this source tree; it is not yet available through an installed package.
+
+This guide describes the integration points that belong in your application.
+The module does not translate an arbitrary IDL directly into a Holoscan graph:
+generated DDS types and Holoscan payloads are separate contracts, and the
+application owns the adapter between them. Keep the IDL, payload schema,
+adapter, QoS profile, and tests in sync as the data model changes.
 
 ## 1. Add the IDL to the application
 
@@ -28,9 +34,11 @@ files in source control.
 
 ## 2. Generate the C++ type from CMake
 
-Add the IDL target to `CMakeLists.txt`:
+Add the module CMake helper and the IDL target to `CMakeLists.txt`:
 
 ```cmake
+include(cmake/RTIConnextDDSGenerateIdl.cmake)
+
 rti_holoscan_add_idl(
     TARGET robot_state_types
     IDL path/to/idl/RobotState.idl
@@ -77,8 +85,7 @@ the Holoscan graph carries.
 
 ### Option A: an existing Holoscan payload
 
-Use this when only selected DDS fields belong in the graph. The two-IDL
-example maps a scalar graph value to a larger DDS sample:
+Use this when only selected DDS fields belong in the graph. This example maps a scalar Holoscan value to a larger DDS sample:
 
 ```cpp
 struct RobotStateAdapter {
@@ -100,7 +107,7 @@ struct RobotStateAdapter {
 };
 ```
 
-This is simple but intentionally exposes only `sequence` to the graph.
+This is simple but intentionally exposes only `sequence` to the graph. The other DDS fields are filled by the adapter and are not available to downstream Holoscan operators.
 
 ### Option B: a typed FlatBuffers Holoscan payload
 
@@ -115,23 +122,12 @@ The complete reference is the
 This provides the best typed Holoscan experience but requires maintaining or
 generating the companion schema and mapping.
 
-### Option C: an XCDR byte Tensor
-
-Use this when existing Connext-oriented application code should construct and
-read `robot::RobotState`, while intermediate Holoscan operators only route or
-record opaque data.
-
-The graph carries a bounded host `Tensor<uint8_t>`. The application serializes
-the generated sample at the graph boundary and deserializes it before reading
-fields. No companion FlatBuffers field model is required.
-
-The complete reference is the
-[XCDR Shapes example](../applications/shapes_demo_xcdr/README.md).
-
-The current `ShapeXcdrAdapter` directly names the generated Shapes serializer
-functions. For a new type, provide the equivalent adapter for the functions
-generated in `RobotStatePlugin.hpp`. A future module API should remove most of
-this boilerplate.
+Choose the payload boundary deliberately. A generated DDS class is not, by
+itself, a valid Holoscan graph payload, and providing only an IDL and a QoS
+profile is not sufficient for the operators to know how fields should be
+represented in the graph. If the application only needs a subset of fields,
+Option A can keep the adapter small; if downstream operators need field-level
+access, use Option B and map the fields explicitly.
 
 ## 4. Instantiate publisher and subscriber types
 
@@ -177,8 +173,9 @@ const auto subscriber = graph.op<RobotSubscriber>(
     });
 ```
 
-Both processes must have access to `RobotQos.xml`. See
-[endpoint configuration](operators/configuration.md).
+Both processes must have access to `RobotQos.xml`. The file is resolved from
+the process working directory unless `qos_file` is an absolute path. The XML
+library and profile names must match exactly. See [endpoint configuration](operators/configuration.md).
 
 ## 6. Connect the graph ports
 
@@ -208,3 +205,8 @@ subscriber application before the publisher. Confirm:
 
 For complex IDL, add tests covering nested members, variable-length members,
 enums, optional members, and maximum expected serialized sizes.
+
+The same process applies to an application that only publishes or only
+subscribes: generate the DDS type, define the Holoscan payload and adapter for
+the direction you need, configure compatible endpoints, and validate the
+mapping in the containerized application.

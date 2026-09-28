@@ -99,7 +99,6 @@ absolute container path in `qos_file`.
 |---|---|---|
 | Two-IDL | `HoloscanConnext::ReliableKeepAll` | Reliable, keep-all, transient-local |
 | Typed Shapes | `HoloscanConnext::ShapesInterop` | Best-effort, keep-last depth 32 |
-| XCDR Shapes | `HoloscanConnext::ShapesInterop` | Best-effort, keep-last depth 32 |
 
 The Shapes profile matches the normal RTI Shapes Demo delivery model. The
 two-IDL profile is intentionally strict so the finite test receives all 20

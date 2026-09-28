@@ -58,7 +58,6 @@ will contain:
 
 - A Holoscan 5 module built as a standalone CMake project.
 - Reusable Connext publisher and subscriber operators.
-- The RTI Shapes `ShapeTypeExtended` IDL, exercised through typed and XCDR paths.
 - CMake-driven Connext C++ type generation with `rtiddsgen`.
 - DDS QoS configured through XML.
 - A publisher and subscriber running as independent Holoscan applications.
@@ -80,15 +79,11 @@ The EA2 prototype now adds a richer interoperability path:
   `NotificationSource`, rather than polling from `compute()`.
 - Two independent Holoscan applications exchange and validate 20 Shapes
   samples through DDS.
-- A parallel XCDR experiment carries the same Shapes sample as an owned
-  `Tensor<uint8_t>` and provides a Release-mode conversion benchmark.
 
 This resolves the EA2 feasibility question for structured payloads. It also
 confirms that the companion-schema approach involves a conversion/copy and
 that automating schema and adapter generation remains an important production
-design question. The XCDR path provides a generic opaque alternative, but its
-serialization, allocation, and loss of typed graph semantics make it a
-different use case rather than a universally better boundary.
+design question.
 
 ## Scope
 
@@ -210,8 +205,7 @@ rticonnextdds-holoscan-module/
 │   └── type_adapter.hpp
 ├── src/
 ├── applications/
-│   ├── shapes_demo_flatbuffers/
-│   └── shapes_demo_xcdr/
+│   └── shapes_demo_flatbuffers/
 │       ├── idl/
 │       ├── publisher/
 │       ├── subscriber/
@@ -327,7 +321,7 @@ pass the same two-IDL communication contract.
 - Holoscan SDK 5 is a required external dependency.
 - RTI Connext DDS 7.7.0 C++ libraries and `rtiddsgen` are required for the
   initial implementation.
-- The module source can be Apache-2.0, subject to RTI legal review.
+- The module source uses the RTI examples license in `LICENSE`.
 - Connext binaries, Debian packages, and licenses are not part of this source
   repository.
 - A valid Connext license is supplied to development and test containers as a
@@ -368,8 +362,7 @@ the module's own semantic version.
 
 1. **Payload boundary:** EA2 supports custom FlatBuffers payloads, but generated
    Connext owning types are not used directly as graph payloads. Applications
-   must currently choose a typed companion schema and adapter or an opaque XCDR
-   byte tensor.
+   use a typed companion schema and adapter.
 2. **Generated integration:** producing companion Holoscan schemas and adapters
    automatically for arbitrary application IDLs remains future work.
 3. **API stability:** Holoscan 5 EA APIs and packaging conventions may change

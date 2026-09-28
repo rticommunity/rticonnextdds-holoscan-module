@@ -10,7 +10,7 @@
         "affiliation": "RTI Real-Time Innovations"
       }
     ],
-    "license": "Apache-2.0",
+    "license": "RTI License (custom, see LICENSE)",
     "language": ["C++"],
     "namespace": {
       "cpp": "rti::holoscan::dds"
@@ -18,7 +18,7 @@
     "operator_names": ["PublisherOp", "SubscriberOp"],
     "subprojects": {
       "operators": ["dds"],
-      "applications": ["shapes_demo_flatbuffers", "shapes_demo_xcdr"]
+      "applications": ["shapes_demo_flatbuffers", "connext_shapes_holoviz"]
     },
     "holoscan_sdk": {
       "minimum_required_version": "5.0.0",

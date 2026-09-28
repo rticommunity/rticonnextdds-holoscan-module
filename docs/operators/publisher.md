@@ -9,10 +9,6 @@ upstream Holoscan operator
           | Adapter::holoscan_type
           v
        PublisherOp -- Adapter::to_dds() --> DataWriter<DdsType> --> DDS
-          |
-          | unchanged original payload
-          v
- optional downstream Holoscan operator
 ```
 
 ## Template arguments
@@ -63,12 +59,11 @@ If `holoscan_type` is `holoscan::Tensor`, the adapter must also provide:
 
 ```cpp
 static holoscan::TensorInputSpec tensor_input_spec();
-static holoscan::TensorOutputSpec tensor_output_spec();
 ```
 
-Those methods declare dtype, rank, memory kind, bounds, storage, and transfer
-behavior to the Holoscan graph compiler. See
-[`ShapeXcdrAdapter`](../../applications/shapes_demo_xcdr/shape_xcdr.hpp).
+This method declares the input tensor's dtype, rank, memory kind, and bounds
+to the Holoscan graph compiler. See the typed Shapes adapter in
+[`shape_adapter.hpp`](../../applications/shapes_demo_flatbuffers/shape_adapter.hpp).
 
 ## Constructor
 
@@ -92,11 +87,10 @@ See [endpoint configuration](configuration.md) for every field and default.
 | Port | Direction | Type | Meaning |
 |---|---|---|---|
 | `input` | Input | `Adapter::holoscan_type` | Payload converted and written to DDS |
-| `published` | Output | `Adapter::holoscan_type` | The same payload after a successful `DataWriter::write()` call |
 
-The `published` port is useful for local progress tracking or for continuing
-the graph after publication. It does not mean that a remote reader has
-received or acknowledged the sample.
+Publishing is an external DDS side effect. `PublisherOp` does not echo a copy
+of the payload back into the Holoscan graph. Validate delivery through a DDS
+reader when end-to-end confirmation is required.
 
 ## Activation and lifecycle
 
@@ -106,8 +100,8 @@ received or acknowledged the sample.
 - `start()` waits up to `reader_match_timeout` (ten seconds by default) for at
   least one compatible reader when `wait_for_reader` is enabled. Set it to
   `false` for a publisher that may start before its readers.
-- `compute()` receives one graph payload, calls `Adapter::to_dds()`, writes the
-  DDS sample, and emits the original payload on `published`.
+- `compute()` receives one graph payload, calls `Adapter::to_dds()`, and writes
+  the DDS sample.
 - `stop()` waits up to five seconds for acknowledgements when applicable, then
   releases DDS entities in dependency order.
 
@@ -148,5 +142,4 @@ opened. The examples copy their XML file into the matching build directory.
 - **License failure:** Connext cannot create DDS entities.
 
 For a complete application, see
-[`connext_shapes_demo_flatbuffers_publisher`](../../applications/shapes_demo_flatbuffers/publisher.cpp) or
-[`connext_shapes_demo_xcdr_publisher`](../../applications/shapes_demo_xcdr/publisher.cpp).
+[`connext_shapes_demo_flatbuffers_publisher`](../../applications/shapes_demo_flatbuffers/publisher.cpp).

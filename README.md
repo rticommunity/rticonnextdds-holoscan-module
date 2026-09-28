@@ -1,5 +1,7 @@
 # RTI Connext DDS for NVIDIA Holoscan
 
+![EXPERIMENTAL](assets/experimental-stamp.png)
+
 Bring the power of RTI Connext to NVIDIA Holoscan applications. This module
 makes it easy for Holoscan applications to publish and subscribe to strongly
 typed data using the DDS publish/subscribe communication model, without
@@ -38,16 +40,87 @@ Distribution Service (DDS) standard, Connext provides:
 - A modular architecture that keeps applications decoupled and easier to
   evolve.
 
+## Quick start: Shapes with Holoviz
+
+The fastest way to verify the integration is the `connext_shapes_holoviz`
+reference application. It generates a moving black square locally, displays it
+with Holoviz, and publishes it with the standard RTI Shapes Demo DDS type. The
+same application subscribes to external `Square`, `Circle`, and `Triangle`
+topics and displays those samples as they arrive.
+
+All commands below build and run inside Docker. No Holoscan or Connext
+installation is required on the host.
+
+Before running the example, prepare the EA2 SDK and the host CLI. Holoscan 5 EA2 does not
+provide a public Docker image, so build the SDK from the NVIDIA EA2 source tree using
+NVIDIA's container workflow:
+
+```bash
+git clone --branch v5.0.0-ea2 --depth 1 \
+  https://github.com/nvidia-holoscan/holoscan-sdk.git \
+  holoscan-sdk
+
+cd holoscan-sdk
+export HOLOSCAN_ARCH=arm64  # use amd64 on x86_64
+export CUDA_ARCH=87       # set to the target GPU compute capability
+./run build --arch "$HOLOSCAN_ARCH" --cudaarchs "$CUDA_ARCH" --sccache false
+```
+
+This produces an architecture-specific SDK image and install directory (for
+example, `holoscan-sdk-build-aarch64:v5.0.0-ea2` and `install-aarch64`). Keep
+both outside this repository.
+
+Install the EA2 Holoscan CLI in a Python 3.11+ virtual environment. Then obtain the Connext license described in [RTI Connext license](#rti-connext-license) before continuing.
+
+```bash
+cd /path/to/rticonnextdds-holoscan-module
+python3 --version  # must be Python 3.11 or newer
+python3 -m venv .venv-holoscan-cli
+.venv-holoscan-cli/bin/python -m pip install --upgrade pip
+.venv-holoscan-cli/bin/python -m pip install --pre \
+  --extra-index-url https://pypi.nvidia.com \
+  'holoscan-cli==5.0.0a1'
+```
+
+Set the repository, SDK, CLI, and license paths for the current shell:
+
+```bash
+export MODULE_ROOT=/path/to/rticonnextdds-holoscan-module
+export HOLOSCAN_SDK_ROOT=/path/to/holoscan-sdk/install-aarch64
+export HOLOSCAN_CLI="${MODULE_ROOT}/.venv-holoscan-cli/bin/holoscan"
+cd "${MODULE_ROOT}"
+test -s rti_license.dat
+```
+
+
+Run two copies of the same application in separate terminals. The modes select
+the local shape and color while both applications also subscribe to the other
+DDS samples:
+
+**Terminal 1 — black square:**
+
+```bash
+$HOLOSCAN_CLI run connext_shapes_holoviz square --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+```
+
+**Terminal 2 — red circle:**
+
+```bash
+$HOLOSCAN_CLI run connext_shapes_holoviz circle --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+```
+
+The two instances exchange Shapes samples through Connext DDS and display both
+the locally generated and received shapes in Holoviz.
+
 ## What can you do with this module?
 
 The module provides reusable C++ publish and subscribe operators for
 application-owned DDS types, CMake-driven Connext type generation from IDL,
 XML QoS configuration, and ready-to-run applications.
 
-The examples demonstrate two complementary integrations: typed FlatBuffers
-payloads for Holoscan-oriented applications and opaque XCDR byte Tensors for
-Connext-oriented applications. Everything is built, tested, and run in Docker,
-with no Connext or Holoscan installation required on the host.
+
+- The FlatBuffers example demonstrates typed payloads for Holoscan-oriented applications.
+- Everything is built, tested, and run in Docker, with no Connext or Holoscan installation required on the host.
 
 The repository is currently an engineering prototype for Holoscan 5 EA2. It
 is not yet an installed or packaged production module. All builds and tests
@@ -59,16 +132,15 @@ Choose the section that matches what you want to do:
 
 | Goal | Read this |
 | --- | --- |
-| Build the repository and run a first test | [Container quick start](#container-quick-start) |
+| Build the repository and run a first test | [Shapes + Holoviz quick start](#quick-start-shapes-with-holoviz) |
+| Build manually, run CTest, or troubleshoot containers | [Advanced container workflow](docs/advanced-container-workflow.md) |
 | Understand the DDS and Holoscan terminology | [Concepts and terminology](#concepts-and-terminology) |
 | Understand the publisher operator | [Publisher operator](docs/operators/publisher.md) |
 | Understand the subscriber operator | [Subscriber operator](docs/operators/subscriber.md) |
 | Configure domain, topic, and QoS | [Endpoint configuration](docs/operators/configuration.md) |
 | Verify a generated DDS type with a Holoscan payload | [Typed Shapes example](applications/shapes_demo_flatbuffers/README.md) |
 | Use typed fields inside a Holoscan graph | [Typed Shapes example](applications/shapes_demo_flatbuffers/README.md) |
-| Keep using generated DDS samples and transport XCDR bytes | [XCDR Tensor example](applications/shapes_demo_xcdr/README.md) |
 | Add an application-owned IDL | [Using your own IDL](docs/using-your-own-idl.md) |
-| Review the engineering scope | [Implementation plan](PLAN.md) |
 
 ## Components
 
@@ -89,11 +161,13 @@ Holoscan/DDS boundary.
 | Example | Holoscan graph payload | DDS type | Primary purpose |
 | --- | --- | --- | --- |
 | `shapes_demo_flatbuffers` | FlatBuffers `ShapeT` | `ShapeTypeExtended` | Demonstrate typed DDS conversion |
-| `shapes_demo_xcdr` | XCDR byte Tensor | `ShapeTypeExtended` | Demonstrate DDS-native XCDR transport |
+| `connext_shapes_holoviz` | FlatBuffers `ShapeT` plus Holoviz frame | `ShapeTypeExtended` | Demonstrate local generation, DDS exchange, and Holoviz visualization |
 
-Each example consists of two independent Holoscan applications: a publisher
-and a subscriber. They communicate through DDS, not through an in-process
-Holoscan connection.
+The FlatBuffers example provides independent publisher and subscriber
+applications that communicate through DDS, not through an in-process Holoscan
+connection. The Holoviz example is one application that
+generates a local shape, publishes it, subscribes to the three Shapes topics,
+and visualizes both local and received samples.
 
 | Component | Purpose |
 | --- | --- |
@@ -101,7 +175,7 @@ Holoscan connection.
 | [Subscriber operator](docs/operators/subscriber.md) | Receive an application-owned DDS type into a Holoscan graph |
 | [Endpoint configuration](docs/operators/configuration.md) | Configure DDS domain, topic, XML QoS, and matching behavior |
 | [Typed Shapes application](applications/shapes_demo_flatbuffers/README.md) | Use generated DDS types with a FlatBuffers payload |
-| [XCDR Shapes application](applications/shapes_demo_xcdr/README.md) | Use generated DDS types with an XCDR Tensor payload |
+| [Shapes + Holoviz application](applications/connext_shapes_holoviz/README.md) | Combine local Shapes generation, DDS pub/sub, and Holoviz |
 | [Own-IDL guide](docs/using-your-own-idl.md) | Generate a new Connext type and integrate it into a graph |
 | [Module Dockerfile](Dockerfile) | Holoscan EA2, Connext, Code Generator, and build environment |
 
@@ -141,9 +215,6 @@ together.
   application-level broker.
 - **QoS** controls delivery behavior such as reliability, history, durability,
   and resource limits. This repository loads QoS from XML.
-- **XCDR** is a DDS wire encoding. The XCDR example stores one encapsulated
-  serialized DDS sample in a byte tensor.
-
 ### Holoscan terminology
 
 - A **graph** connects processing stages.
@@ -164,15 +235,34 @@ The module therefore uses an adapter:
 Holoscan payload <-> application adapter <-> generated DDS type
 ```
 
-The examples demonstrate two useful boundaries:
+The Shapes example uses a typed boundary:
 
 ```text
-Typed: Holoscan ShapeT <-> ShapeAdapter <-> DDS ShapeTypeExtended
-Opaque: DDS ShapeTypeExtended <-> XCDR Tensor<uint8_t>
+Holoscan ShapeT <-> ShapeAdapter <-> DDS ShapeTypeExtended
 ```
 
 See [Choosing a payload boundary](#choosing-a-payload-boundary) before adding
 your own data model.
+
+### Integration constraints
+
+This module provides a reference integration, not an automatic IDL-to-Holoscan
+transport generator. For an application-owned data type, the application must
+provide:
+
+- a C++ type generated from its Connext IDL;
+- a Holoscan graph payload admitted by the operators in that graph; and
+- an adapter that explicitly maps the payload to and/or from the generated DDS
+  type.
+
+The DDS endpoints must also agree on the domain, topic name, compatible type
+metadata, and requested/offered QoS. The XML QoS file and the generated type
+support must be available inside the container at build and runtime. Changes
+to an IDL normally require updating the generated type, the adapter, any
+companion Holoscan schema, and the integration tests together.
+
+For a step-by-step example, including the CMake code-generation helper and the
+two supported payload-boundary choices, see [Using your own IDL](docs/using-your-own-idl.md).
 
 ## Requirements
 
@@ -202,216 +292,30 @@ test, and runtime dependencies are provided inside Docker.
 
 ## RTI Connext license
 
-The Apache-2.0 source code in this repository does not include an RTI Connext
-runtime license. Request and download an activation key from the
+The source code in this repository is distributed under the RTI license in
+`LICENSE` and does not include an RTI Connext runtime license. Request and
+download an activation key from the
 [RTI Connext license page](https://content.rti.com/l/983311/2025-07-25/q6729c).
 
 Keep the resulting `rti_license.dat` outside the container image and source
-control. The quick start downloads it from inside the development container
-into the ignored `build-ea2` directory and passes its path through
+control. The Quick Start expects this ignored file in the module root. The
+manual workflow uses `build-ea2/rti_license.dat` and passes its path through
 `RTI_LICENSE_FILE` at runtime.
-
-## Container quick start
-
-The following commands assume Bash. Start Bash first if the current shell is
-`tcsh` or another shell with different variable syntax:
-
-```bash
-bash
-```
-
-### 1. Build the Holoscan EA2 SDK
-
-From the private NVIDIA EA2 `holoscan-sdk` source directory, use NVIDIA's
-container workflow:
-
-```bash
-./run build --arch arm64 --cudaarchs 87 --sccache false
-```
-
-The validated build produces:
-
-- Docker image `holoscan-sdk-build-aarch64:v5.0.0-ea2`.
-- Installed SDK directory `install-aarch64`.
-
-Do not copy EA2 source or binaries into this repository.
-
-### 2. Define the two repository paths
-
-Set absolute paths for the shell session. Replace the example paths if the
-repositories live elsewhere:
-
-```bash
-export MODULE_ROOT=/home1/juanca/holo5/rticonnextdds-holoscan-module
-export HOLOSCAN_INSTALL=/home1/juanca/holo5/holoscan5-ea-private/ea2/holoscan-sdk/install-aarch64
-cd "${MODULE_ROOT}"
-```
-
-Confirm that the SDK installation is present:
-
-```bash
-test -f "${HOLOSCAN_INSTALL}/lib/cmake/holoscan/holoscan-config.cmake" \
-  || test -f "${HOLOSCAN_INSTALL}/lib/cmake/holoscan/holoscan-full-config.cmake"
-```
-
-### 3. Build the module development image
-
-```bash
-docker build -t rticonnextdds-holoscan-module:ea2 "${MODULE_ROOT}"
-```
-
-The image installs Connext 7.7.0, RTI Code Generator, the pinned Holoscan CLI
-(`5.0.0a1` for EA2), CMake, and the build tools. It does not contain a
-Connext license or private Holoscan artifacts.
-
-### 4. Configure and compile the module
-
-```bash
-docker run --rm --network=host \
-  --user "$(id -u):$(id -g)" \
-  -v "${HOLOSCAN_INSTALL}:/opt/holoscan:ro" \
-  -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
-  -w /workspace/rticonnextdds-holoscan-module \
-  rticonnextdds-holoscan-module:ea2 \
-  bash -lc 'cmake -S . -B build-ea2 -G Ninja \
-    -DCMAKE_PREFIX_PATH=/opt/holoscan && cmake --build build-ea2'
-```
-
-Generated DDS and FlatBuffers files remain under the ignored `build-ea2`
-directory. Nothing is installed on the host.
-
-### 5. Obtain a Connext license
-
-The examples require a valid Connext license. The following command downloads
-the Holoscan evaluation license from RTI from inside the module container:
-
-```bash
-docker run --rm --network=host \
-  --user "$(id -u):$(id -g)" \
-  -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
-  -w /workspace/rticonnextdds-holoscan-module \
-  rticonnextdds-holoscan-module:ea2 \
-  bash -lc 'mkdir -p build-ea2 && \
-    curl -fL https://content.rti.com/l/983311/2025-07-25/q6729c \
-      -o build-ea2/rti_license.dat'
-```
-
-The file is ignored by Git. Never add it to the image or commit it. If the
-download is unavailable, obtain a valid license from the
-[RTI Connext license page](https://content.rti.com/l/983311/2025-07-25/q6729c)
-and place it at `${MODULE_ROOT}/build-ea2/rti_license.dat`.
-
-### 6. Run the first DDS round trip
-
-Run the typed Shapes integration test:
-
-```bash
-docker run --rm --runtime=nvidia --network=host \
-  --user "$(id -u):$(id -g)" \
-  -e RTI_LICENSE_FILE=/workspace/rticonnextdds-holoscan-module/build-ea2/rti_license.dat \
-  -v "${HOLOSCAN_INSTALL}:/opt/holoscan:ro" \
-  -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
-  -w /workspace/rticonnextdds-holoscan-module \
-  rticonnextdds-holoscan-module:ea2 \
-  ctest --test-dir build-ea2 -R connext_shapes_demo_flatbuffers_integration --output-on-failure
-```
-
-Success ends with:
-
-```text
-100% tests passed, 0 tests failed out of 1
-```
-
-This test launches a subscriber and publisher as separate processes, sends 20
-`ShapeTypeExtended` samples, and validates every field after reception.
-
-`--runtime=nvidia` is required because Holoscan EA2 runtime binaries link to
-the CUDA driver even though these examples are headless and CPU-only.
-
-### 7. Run the complete suite
-
-```bash
-docker run --rm --runtime=nvidia --network=host \
-  --user "$(id -u):$(id -g)" \
-  -e RTI_LICENSE_FILE=/workspace/rticonnextdds-holoscan-module/build-ea2/rti_license.dat \
-  -v "${HOLOSCAN_INSTALL}:/opt/holoscan:ro" \
-  -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
-  -w /workspace/rticonnextdds-holoscan-module \
-  rticonnextdds-holoscan-module:ea2 \
-  ctest --test-dir build-ea2 --output-on-failure
-```
-
-The suite contains seven tests: SDK/runtime smoke tests, generated-type tests,
-typed and XCDR adapter tests, and three real DDS integrations.
 
 ## Choosing a payload boundary
 
-The typed Shapes and XCDR Shapes examples use the same DDS type and topic but
-optimize for different users:
-
-| Question | Companion FlatBuffers payload | XCDR byte Tensor |
-| --- | --- | --- |
-| Most natural for | Holoscan developer | Existing Connext developer |
-| Application API | Holoscan `ShapeT` | Generated DDS `ShapeTypeExtended` |
-| Graph port | Typed structured payload | `Tensor<uint8_t>` |
-| Access fields in graph | Directly | Deserialize first |
-| Per-IDL Holoscan schema | Required | Not required for opaque stages |
-| Nested or evolving IDL | Matching schema and adapter must evolve | Encoded without duplicating the field model |
-| Current conversion cost | Field mapping and copy | XCDR serialization, allocation, and deserialization |
-| GPU use | Can expose GPU-oriented fields or tensors | Opaque XCDR is not GPU-native |
-
-Choose FlatBuffers when Holoscan operators need to inspect or transform the
-fields. Choose XCDR when existing Connext code should keep using its generated
-sample and intermediate graph operators only need to route opaque data.
-
-The XCDR graph boundary is more IDL-agnostic, but the current DDS endpoint is
-not type-erased. It still instantiates a generated `DataWriter<DdsType>` or
-`DataReader<DdsType>` and uses the serializer for that type.
-
-## Troubleshooting
-
-### `libcuda.so.1` cannot be loaded
-
-Add `--runtime=nvidia` to the `docker run` command and confirm that the NVIDIA
-Container Runtime works on the host.
-
-### Connext reports a license error
-
-Confirm that the file exists and is not expired:
-
-```bash
-test -s "${MODULE_ROOT}/build-ea2/rti_license.dat"
-grep -i FEATURE "${MODULE_ROOT}/build-ea2/rti_license.dat"
-```
-
-Confirm that the container command sets:
+The reference application uses a typed FlatBuffers payload for the Holoscan
+side and the generated `ShapeTypeExtended` type for DDS. This keeps fields
+available to Holoscan operators and makes the conversion contract explicit:
 
 ```text
-RTI_LICENSE_FILE=/workspace/rticonnextdds-holoscan-module/build-ea2/rti_license.dat
+Holoscan ShapeT <-> ShapeAdapter <-> DDS ShapeTypeExtended
 ```
 
-### The publisher times out waiting for a reader
-
-Start the subscriber first. The publisher waits up to ten seconds for a
-compatible DDS reader before reporting an error.
-
-If both applications are running, verify that they use the same domain ID,
-topic name, DDS type, and compatible QoS. Host networking must also permit DDS
-discovery and user-data traffic.
-
-### CMake cannot find Holoscan
-
-Verify the `HOLOSCAN_INSTALL` host path and its read-only mount at
-`/opt/holoscan`. The configure command must include:
-
-```text
--DCMAKE_PREFIX_PATH=/opt/holoscan
-```
-
-### CMake cannot find Connext or RTI Code Generator
-
-Rebuild the module image. The Dockerfile installs Connext 7.7.0 and sets
-`NDDSHOME`; no host Connext installation is used.
+Use a companion FlatBuffers schema when Holoscan operators need to inspect or
+transform individual DDS fields. The schema and adapter must evolve together
+when the application data model changes. The module does not infer this schema
+or generate the mapping automatically.
 
 ## Current limitations
 
@@ -419,14 +323,8 @@ Rebuild the module image. The Dockerfile installs Connext 7.7.0 and sets
 - Only the ARM64 container workflow described above has been validated.
 - Python bindings are not included.
 - The FlatBuffers adapter is handwritten.
-- The XCDR path allocates a host buffer and tensor ownership metadata for each
-  sample; it is not zero-copy.
-- No GPU or network performance claim is made by the conversion benchmark.
 - A native DDS External Topics provider is not implemented.
 
-Architecture decisions are recorded in
-[ADR 0001](docs/adr/0001-ea1-payload-boundary.md) and
-[ADR 0002](docs/adr/0002-ea2-shapes-payload-boundary.md).
 
 ## Ownership and contact
 

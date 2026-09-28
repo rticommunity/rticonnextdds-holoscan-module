@@ -3,7 +3,8 @@
 The module provides two reusable C++ Holoscan operators:
 
 - [PublisherOp](publisher.md) converts a Holoscan payload into a generated DDS
-  sample and publishes it.
+  sample and publishes it. DDS publication is an external side effect; the
+  operator has no Holoscan output port.
 - [SubscriberOp](subscriber.md) receives a generated DDS sample and converts
   it into a Holoscan payload.
 
@@ -18,6 +19,4 @@ An application supplies:
 4. A matching XML QoS profile.
 
 For a complete implementation, start with the
-[typed Shapes example](../../applications/shapes_demo_flatbuffers/README.md), then compare the
-[typed Shapes](../../applications/shapes_demo_flatbuffers/README.md) and
-[XCDR Tensor](../../applications/shapes_demo_xcdr/README.md) boundaries.
+[typed Shapes example](../../applications/shapes_demo_flatbuffers/README.md).

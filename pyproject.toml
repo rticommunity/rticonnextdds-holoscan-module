@@ -1,0 +1,3 @@
+[tool.holoscan]
+cuda = 13
+base-images = { aarch64 = "holoscan-sdk-build-aarch64:v5.0.0-ea2" }

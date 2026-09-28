@@ -1,7 +1,13 @@
-/*
- * SPDX-FileCopyrightText: Copyright (c) 2026 Real-Time Innovations, Inc.
- * SPDX-License-Identifier: Apache-2.0
- */
+/* *******************************************************************************
+ * (c) 2026 Copyright, Real-Time Innovations, Inc. All rights reserved.
+ * RTI grants Licensee a license to use, modify, compile, and create derivative
+ * works of the Software. Licensee has the right to distribute object form only
+ * for use with RTI products. The Software is provided "as is", with no warranty
+ * of any type, including any warranty for fitness for any purpose. RTI is under no
+ * obligation to maintain or support the Software. RTI shall not be liable for any
+ * incidental or consequential damages arising out of the use or inability to use
+ * the software.
+ *******************************************************************************/
 
 #pragma once
 
@@ -44,11 +50,8 @@ class PublisherOp final : public ::holoscan::Operator<> {
       spec.input(input, "input")
           .queue_depth(32U)
           .expects_tensor(Adapter::tensor_input_spec());
-      spec.output(published, "published")
-          .produces_tensor(Adapter::tensor_output_spec());
     } else {
       spec.input(input, "input").queue_depth(32U);
-      spec.output(published, "published");
     }
   }
 
@@ -68,6 +71,7 @@ class PublisherOp final : public ::holoscan::Operator<> {
     publisher_.emplace(*participant_, qos.publisher);
     topic_.emplace(*participant_, config_.topic_name, qos.topic);
     writer_.emplace(*publisher_, *topic_, qos.writer);
+    detail::register_process_local_publication(config_, writer_->instance_handle());
 
     if (!config_.wait_for_reader) {
       return;
@@ -96,6 +100,9 @@ class PublisherOp final : public ::holoscan::Operator<> {
         // delivery is asserted by the receiving application, not hidden here.
       }
     }
+    if (writer_) {
+      detail::unregister_process_local_publication(config_, writer_->instance_handle());
+    }
     writer_.reset();
     topic_.reset();
     publisher_.reset();
@@ -115,7 +122,7 @@ class PublisherOp final : public ::holoscan::Operator<> {
 
     try {
       writer_->write(Adapter::to_dds(*value));
-      return published.emit(std::move(*value));
+      return {};
     } catch (const std::exception& error) {
       return ::holoscan::make_unexpected(::holoscan::Error{
           ::holoscan::ErrorCode::kFailure, std::string{"DDS publish failed: "} + error.what()});
@@ -126,7 +133,6 @@ class PublisherOp final : public ::holoscan::Operator<> {
   }
 
   ::holoscan::Input<PortType> input;
-  ::holoscan::Output<PortType> published;
 
  private:
   EndpointConfig config_;
