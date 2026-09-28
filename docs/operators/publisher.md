@@ -67,8 +67,8 @@ static holoscan::TensorOutputSpec tensor_output_spec();
 ```
 
 Those methods declare dtype, rank, memory kind, bounds, storage, and transfer
-behavior to the Holoscan graph compiler. See
-[`ShapeXcdrAdapter`](../../applications/shapes_demo_xcdr/shape_xcdr.hpp).
+behavior to the Holoscan graph compiler. See the typed Shapes adapter in
+[`shape_adapter.hpp`](../../applications/shapes_demo_flatbuffers/shape_adapter.hpp).
 
 ## Constructor
 
@@ -148,5 +148,4 @@ opened. The examples copy their XML file into the matching build directory.
 - **License failure:** Connext cannot create DDS entities.
 
 For a complete application, see
-[`connext_shapes_demo_flatbuffers_publisher`](../../applications/shapes_demo_flatbuffers/publisher.cpp) or
-[`connext_shapes_demo_xcdr_publisher`](../../applications/shapes_demo_xcdr/publisher.cpp).
+[`connext_shapes_demo_flatbuffers_publisher`](../../applications/shapes_demo_flatbuffers/publisher.cpp).

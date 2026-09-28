@@ -120,7 +120,6 @@ XML QoS configuration, and ready-to-run applications.
 
 
 - The FlatBuffers example demonstrates typed payloads for Holoscan-oriented applications.
-- The XCDR example demonstrates opaque byte Tensor payloads for Connext-oriented applications.
 - Everything is built, tested, and run in Docker, with no Connext or Holoscan installation required on the host.
 
 The repository is currently an engineering prototype for Holoscan 5 EA2. It
@@ -141,7 +140,6 @@ Choose the section that matches what you want to do:
 | Configure domain, topic, and QoS | [Endpoint configuration](docs/operators/configuration.md) |
 | Verify a generated DDS type with a Holoscan payload | [Typed Shapes example](applications/shapes_demo_flatbuffers/README.md) |
 | Use typed fields inside a Holoscan graph | [Typed Shapes example](applications/shapes_demo_flatbuffers/README.md) |
-| Keep using generated DDS samples and transport XCDR bytes | [XCDR Tensor example](applications/shapes_demo_xcdr/README.md) |
 | Add an application-owned IDL | [Using your own IDL](docs/using-your-own-idl.md) |
 
 ## Components
@@ -163,12 +161,11 @@ Holoscan/DDS boundary.
 | Example | Holoscan graph payload | DDS type | Primary purpose |
 | --- | --- | --- | --- |
 | `shapes_demo_flatbuffers` | FlatBuffers `ShapeT` | `ShapeTypeExtended` | Demonstrate typed DDS conversion |
-| `shapes_demo_xcdr` | XCDR byte Tensor | `ShapeTypeExtended` | Demonstrate DDS-native XCDR transport |
 | `connext_shapes_holoviz` | FlatBuffers `ShapeT` plus Holoviz frame | `ShapeTypeExtended` | Demonstrate local generation, DDS exchange, and Holoviz visualization |
 
-The FlatBuffers and XCDR examples each provide independent publisher and
-subscriber applications. They communicate through DDS, not through an
-in-process Holoscan connection. The Holoviz example is one application that
+The FlatBuffers example provides independent publisher and subscriber
+applications that communicate through DDS, not through an in-process Holoscan
+connection. The Holoviz example is one application that
 generates a local shape, publishes it, subscribes to the three Shapes topics,
 and visualizes both local and received samples.
 
@@ -178,7 +175,6 @@ and visualizes both local and received samples.
 | [Subscriber operator](docs/operators/subscriber.md) | Receive an application-owned DDS type into a Holoscan graph |
 | [Endpoint configuration](docs/operators/configuration.md) | Configure DDS domain, topic, XML QoS, and matching behavior |
 | [Typed Shapes application](applications/shapes_demo_flatbuffers/README.md) | Use generated DDS types with a FlatBuffers payload |
-| [XCDR Shapes application](applications/shapes_demo_xcdr/README.md) | Use generated DDS types with an XCDR Tensor payload |
 | [Shapes + Holoviz application](applications/connext_shapes_holoviz/README.md) | Combine local Shapes generation, DDS pub/sub, and Holoviz |
 | [Own-IDL guide](docs/using-your-own-idl.md) | Generate a new Connext type and integrate it into a graph |
 | [Module Dockerfile](Dockerfile) | Holoscan EA2, Connext, Code Generator, and build environment |
@@ -219,9 +215,6 @@ together.
   application-level broker.
 - **QoS** controls delivery behavior such as reliability, history, durability,
   and resource limits. This repository loads QoS from XML.
-- **XCDR** is a DDS wire encoding. The XCDR example stores one encapsulated
-  serialized DDS sample in a byte tensor.
-
 ### Holoscan terminology
 
 - A **graph** connects processing stages.
@@ -242,11 +235,10 @@ The module therefore uses an adapter:
 Holoscan payload <-> application adapter <-> generated DDS type
 ```
 
-The examples demonstrate two useful boundaries:
+The Shapes example uses a typed boundary:
 
 ```text
-Typed: Holoscan ShapeT <-> ShapeAdapter <-> DDS ShapeTypeExtended
-Opaque: DDS ShapeTypeExtended <-> XCDR Tensor<uint8_t>
+Holoscan ShapeT <-> ShapeAdapter <-> DDS ShapeTypeExtended
 ```
 
 See [Choosing a payload boundary](#choosing-a-payload-boundary) before adding
@@ -292,27 +284,17 @@ manual workflow uses `build-ea2/rti_license.dat` and passes its path through
 
 ## Choosing a payload boundary
 
-The typed Shapes and XCDR Shapes examples use the same DDS type and topic but
-optimize for different users:
+The reference application uses a typed FlatBuffers payload for the Holoscan
+side and the generated `ShapeTypeExtended` type for DDS. This keeps fields
+available to Holoscan operators and makes the conversion contract explicit:
 
-| Question | Companion FlatBuffers payload | XCDR byte Tensor |
-| --- | --- | --- |
-| Most natural for | Holoscan developer | Existing Connext developer |
-| Application API | Holoscan `ShapeT` | Generated DDS `ShapeTypeExtended` |
-| Graph port | Typed structured payload | `Tensor<uint8_t>` |
-| Access fields in graph | Directly | Deserialize first |
-| Per-IDL Holoscan schema | Required | Not required for opaque stages |
-| Nested or evolving IDL | Matching schema and adapter must evolve | Encoded without duplicating the field model |
-| Current conversion cost | Field mapping and copy | XCDR serialization, allocation, and deserialization |
-| GPU use | Can expose GPU-oriented fields or tensors | Opaque XCDR is not GPU-native |
+```text
+Holoscan ShapeT <-> ShapeAdapter <-> DDS ShapeTypeExtended
+```
 
-Choose FlatBuffers when Holoscan operators need to inspect or transform the
-fields. Choose XCDR when existing Connext code should keep using its generated
-sample and intermediate graph operators only need to route opaque data.
-
-The XCDR graph boundary is more IDL-agnostic, but the current DDS endpoint is
-not type-erased. It still instantiates a generated `DataWriter<DdsType>` or
-`DataReader<DdsType>` and uses the serializer for that type.
+Use a companion FlatBuffers schema when Holoscan operators need to inspect or
+transform individual DDS fields. The schema and adapter must evolve together
+when the application data model changes.
 
 ## Current limitations
 
@@ -320,9 +302,6 @@ not type-erased. It still instantiates a generated `DataWriter<DdsType>` or
 - Only the ARM64 container workflow described above has been validated.
 - Python bindings are not included.
 - The FlatBuffers adapter is handwritten.
-- The XCDR path allocates a host buffer and tensor ownership metadata for each
-  sample; it is not zero-copy.
-- No GPU or network performance claim is made by the conversion benchmark.
 - A native DDS External Topics provider is not implemented.
 
 

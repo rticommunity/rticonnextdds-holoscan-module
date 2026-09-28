@@ -116,26 +116,6 @@ The complete reference is the
 This provides the best typed Holoscan experience but requires maintaining or
 generating the companion schema and mapping.
 
-### Option C: an XCDR byte Tensor
-
-Use this when existing Connext-oriented application code should construct and
-read `robot::RobotState`, while intermediate Holoscan operators only route or
-record opaque data.
-
-The graph carries a bounded host `Tensor<uint8_t>`. The application serializes
-the generated sample at the graph boundary and deserializes it before reading
-fields. No companion FlatBuffers field model is required. This avoids duplicating
-the schema in the Holoscan graph, but the DDS endpoint still depends on the
-generated `robot::RobotState` type and its generated serializer functions.
-
-The complete reference is the
-[XCDR Shapes example](../applications/shapes_demo_xcdr/README.md).
-
-The current `ShapeXcdrAdapter` directly names the generated Shapes serializer
-functions. For a new type, provide the equivalent adapter for the functions
-generated in `RobotStatePlugin.hpp`. A future module API should remove most of
-this boilerplate.
-
 ## 4. Instantiate publisher and subscriber types
 
 ```cpp

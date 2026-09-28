@@ -18,7 +18,7 @@
     "operator_names": ["PublisherOp", "SubscriberOp"],
     "subprojects": {
       "operators": ["dds"],
-      "applications": ["shapes_demo_flatbuffers", "shapes_demo_xcdr", "connext_shapes_holoviz"]
+      "applications": ["shapes_demo_flatbuffers", "connext_shapes_holoviz"]
     },
     "holoscan_sdk": {
       "minimum_required_version": "5.0.0",

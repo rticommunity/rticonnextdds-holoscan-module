@@ -26,7 +26,7 @@ $HOLOSCAN_CLI run shapes_demo_flatbuffers subscriber --no-docker-build --no-loca
 $HOLOSCAN_CLI run shapes_demo_flatbuffers publisher --no-docker-build --no-local-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
 ```
 
-Use the same sequence with `shapes_demo_xcdr`. For the visual reference application, build its CLI image and select `square`, `circle`, `triangle`, `headless_square`, or `headless_circle` with `holoscan run`. The CLI mounts the ignored `rti_license.dat` into the container; the license is never copied into the image or committed.
+For the visual reference application, build its CLI image and select `square`, `circle`, `triangle`, `headless_square`, or `headless_circle` with `holoscan run`. The CLI mounts the ignored `rti_license.dat` into the container; the license is never copied into the image or committed.
 
 The following commands assume Bash. Start Bash first if the current shell is
 `tcsh` or another shell with different variable syntax:
@@ -158,8 +158,8 @@ docker run --rm --runtime=nvidia --network=host \
   ctest --test-dir build-ea2 --output-on-failure
 ```
 
-By default, the suite contains the non-visual SDK, adapter, benchmark, and DDS
-integration tests. The Holoviz test is opt-in because it launches two
+By default, the suite contains the non-visual SDK, adapter, and DDS
+integration test. The Holoviz test is opt-in because it launches two
 additional Docker containers and two Xvfb displays. It also needs the Docker
 CLI and daemon access from the shell that starts the test. For the supported
 user workflow, follow the [headless visual test instructions](../applications/connext_shapes_holoviz/README.md#headless-visual-test).

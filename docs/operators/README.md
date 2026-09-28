@@ -18,6 +18,4 @@ An application supplies:
 4. A matching XML QoS profile.
 
 For a complete implementation, start with the
-[typed Shapes example](../../applications/shapes_demo_flatbuffers/README.md), then compare the
-[typed Shapes](../../applications/shapes_demo_flatbuffers/README.md) and
-[XCDR Tensor](../../applications/shapes_demo_xcdr/README.md) boundaries.
+[typed Shapes example](../../applications/shapes_demo_flatbuffers/README.md).

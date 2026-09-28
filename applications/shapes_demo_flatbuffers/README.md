@@ -15,8 +15,7 @@ It uses:
 Holoscan ShapeT <-> ShapeAdapter <-> DDS ShapeTypeExtended
 ```
 
-This is the typed alternative to the
-[XCDR Tensor example](../shapes_demo_xcdr/README.md).
+This is the typed Shapes reference for Holoscan applications.
 
 ## When to use this approach
 
