@@ -20,7 +20,8 @@ external_name="connext-holoviz-external-${$}"
 domain_id=$((100 + $$ % 100))
 mkdir -p "${artifact_dir}"
 rm -f "${artifact_dir}/local.png" "${artifact_dir}/external.png"
-common=(--runtime=nvidia --net host --ipc host -u "$(id -u):$(id -g)"
+# DDS uses host networking; each Holoviz process keeps its own HoloMQ IPC state.
+common=(--runtime=nvidia --net host -u "$(id -u):$(id -g)"
   -v "${host_workspace}:${workspace}"
   -v "${host_sdk_root}:${sdk}:ro"
   -v "${host_workspace}/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
@@ -67,8 +68,13 @@ docker run -d --name "${local_name}" "${common[@]}" "${image}" bash -lc \
 docker run -d --name "${external_name}" "${common[@]}" "${image}" bash -lc \
   "export DISPLAY=:100 XDG_RUNTIME_DIR=/tmp; Xvfb :100 -screen 0 800x800x24 >/tmp/xvfb.log 2>&1 & exec ./connext_shapes_holoviz --domain-id ${domain_id} --publish-topic Circle --publish-color RED" >/dev/null
 sleep 8
-test "$(docker inspect --format "{{.State.Running}}" "${local_name}")" = true
-test "$(docker inspect --format "{{.State.Running}}" "${external_name}")" = true
+for name in "${local_name}" "${external_name}"; do
+  if [[ "$(docker inspect --format '{{.State.Running}}' "${name}")" != true ]]; then
+    docker logs "${name}" >&2 || true
+    echo "Holoviz container ${name} exited before capture" >&2
+    exit 1
+  fi
+done
 docker exec -e DISPLAY=:99 "${local_name}" import -window "Connext Shapes + Holoviz" /artifacts/local.png
 docker exec -e DISPLAY=:100 "${external_name}" import -window "Connext Shapes + Holoviz" /artifacts/external.png
 for capture in /artifacts/local.png /artifacts/external.png; do
