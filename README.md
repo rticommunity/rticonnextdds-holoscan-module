@@ -88,6 +88,8 @@ Set the repository, SDK, CLI, and license paths for the current shell:
 export MODULE_ROOT=/path/to/rticonnextdds-holoscan-module
 export HOLOSCAN_SDK_ROOT=/path/to/holoscan-sdk/install-aarch64
 export HOLOSCAN_CLI="${MODULE_ROOT}/.venv-holoscan-cli/bin/holoscan"
+export RTI_LICENSE_CONTAINER_PATH=/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat
+export RTI_LICENSE_DOCKER_MOUNT="--mount=type=bind,src=${MODULE_ROOT}/rti_license.dat,dst=${RTI_LICENSE_CONTAINER_PATH},readonly"
 cd "${MODULE_ROOT}"
 test -s rti_license.dat
 ```
@@ -100,13 +102,15 @@ DDS samples:
 **Terminal 1 — black square:**
 
 ```bash
-$HOLOSCAN_CLI run connext_shapes_holoviz square --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+$HOLOSCAN_CLI run connext_shapes_holoviz square --local-sdk-root "$HOLOSCAN_SDK_ROOT" \
+  --docker-opts="$RTI_LICENSE_DOCKER_MOUNT"
 ```
 
 **Terminal 2 — red circle:**
 
 ```bash
-$HOLOSCAN_CLI run connext_shapes_holoviz circle --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+$HOLOSCAN_CLI run connext_shapes_holoviz circle --local-sdk-root "$HOLOSCAN_SDK_ROOT" \
+  --docker-opts="$RTI_LICENSE_DOCKER_MOUNT"
 ```
 
 The two instances exchange Shapes samples through Connext DDS and display both
@@ -191,7 +195,7 @@ shared setup and recommended starting workflow.
 | RTI Connext DDS | `7.7.0` |
 | NVIDIA Holoscan SDK | `5.0.0 EA2` |
 | CUDA | `13` |
-| Validated architecture | `aarch64` |
+| Validated architectures | `aarch64`, `x86_64` |
 | Connext architecture | `armv8Linux4gcc8.5.0` |
 
 The module version describes this integration's own API and implementation.
@@ -284,8 +288,28 @@ Connext architecture: armv8Linux4gcc8.5.0
 ```
 
 An x86_64 environment needs a matching Holoscan base image and Connext
-architecture passed as Docker build arguments. That path has not yet been
-validated by this prototype.
+architecture. The CLI profile selects
+`holoscan-sdk-build-x86_64:v5.0.0-ea2` on x86_64, and the Dockerfile selects
+`x64Linux4gcc8.5.0` for an amd64 target. This path was built and exercised on
+an x86_64 Alienware with a GeForce RTX 3070 Laptop GPU (compute capability
+8.6), including the DDS integration tests and headless Holoviz test.
+
+For example, build the SDK for an RTX 3070 with:
+
+```bash
+./run build --arch amd64 --cudaarchs 86 --sccache false --parallel 2
+```
+
+Use the resulting `install-x86_64` directory as `HOLOSCAN_SDK_ROOT`. For a
+manual module image build, select the x86_64 SDK image explicitly:
+
+```bash
+docker build -t rticonnextdds-holoscan-module:ea2 \
+  --build-arg BASE_IMAGE=holoscan-sdk-build-x86_64:v5.0.0-ea2 .
+```
+
+`RTI_CONNEXT_ARCH` remains available as a Docker build argument to override
+the architecture selected for either platform.
 
 Do not install Holoscan or Connext on the host for this workflow. All build,
 test, and runtime dependencies are provided inside Docker.
@@ -298,9 +322,10 @@ download an activation key from the
 [RTI Connext license page](https://content.rti.com/l/983311/2025-07-25/q6729c).
 
 Keep the resulting `rti_license.dat` outside the container image and source
-control. The Quick Start expects this ignored file in the module root. The
-manual workflow uses `build-ea2/rti_license.dat` and passes its path through
-`RTI_LICENSE_FILE` at runtime.
+control. The package's placeholder `rti_license.dat` is removed from the image.
+The Quick Start expects the valid, ignored file in the module root and bind
+mounts it read-only over `${RTI_LICENSE_FILE}` for each Holoscan CLI run. This
+keeps the actual license out of the image while ensuring RTI can read it.
 
 ## Choosing a payload boundary
 
@@ -320,7 +345,9 @@ or generate the mapping automatically.
 ## Current limitations
 
 - This is EA2 prototype source, not an installed CMake or Debian package.
-- Only the ARM64 container workflow described above has been validated.
+- ARM64 remains the reference setup. The x86_64 workflow has also passed the
+  build, DDS integration tests, and headless Holoviz test on the configuration
+  described above.
 - Python bindings are not included.
 - The FlatBuffers adapter is handwritten.
 - A native DDS External Topics provider is not implemented.

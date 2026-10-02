@@ -14,7 +14,8 @@
 # EA2 development image. The default base is built from NVIDIA's private
 # Engineering Release source with its official `./run build` workflow.
 ARG BASE_IMAGE=holoscan-sdk-build-aarch64:v5.0.0-ea2
-FROM ${BASE_IMAGE}
+ARG TARGETARCH
+FROM ${BASE_IMAGE} AS connext-base
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG RTI_CONNEXT_VERSION=7.7.0
@@ -39,6 +40,7 @@ RUN rm -f /etc/apt/sources.list.d/kitware.list \
     && RTI_LICENSE_AGREEMENT_ACCEPTED=accepted apt-get update \
     && RTI_LICENSE_AGREEMENT_ACCEPTED=accepted apt-get install -y \
         "rti-connext-dds-${RTI_CONNEXT_VERSION}" \
+    && rm -f "/opt/rti.com/rti_connext_dds-${RTI_CONNEXT_VERSION}/rti_license.dat" \
     && rm -rf /var/lib/apt/lists/*
 
 # Keep the container self-contained for the Holoscan CLI workflow. The host
@@ -48,17 +50,25 @@ RUN python3 -m pip install --no-cache-dir --pre \
         --extra-index-url https://pypi.nvidia.com \
         "holoscan-cli==${HOLOSCAN_CLI_VERSION}"
 
-ARG RTI_CONNEXT_ARCH=armv8Linux4gcc8.5.0
-
 ENV NDDSHOME=/opt/rti.com/rti_connext_dds-${RTI_CONNEXT_VERSION}
 ENV RTI_CONNEXT_DDS_DIR=${NDDSHOME}
-ENV CONNEXTDDS_ARCH=${RTI_CONNEXT_ARCH}
 ENV RTI_LICENSE_FILE=${NDDSHOME}/rti_license.dat
 ENV HOME=/opt/rti-home
 
 RUN mkdir -p ${HOME}/.rti \
     && printf 'copy_workspace=false\n' > ${HOME}/.rti/rticommon_config.sh \
     && chmod -R a+rwX ${HOME}
+
+# Docker's target architecture selects the matching Connext libraries.
+FROM connext-base AS connext-amd64
+ENV CONNEXTDDS_ARCH=x64Linux4gcc8.5.0
+
+FROM connext-base AS connext-arm64
+ENV CONNEXTDDS_ARCH=armv8Linux4gcc8.5.0
+
+FROM connext-${TARGETARCH} AS development
+ARG RTI_CONNEXT_ARCH
+ENV CONNEXTDDS_ARCH=${RTI_CONNEXT_ARCH:-${CONNEXTDDS_ARCH}}
 
 WORKDIR /workspace/rticonnextdds-holoscan-module
 CMD ["/bin/bash"]
