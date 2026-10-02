@@ -322,8 +322,7 @@ download an activation key from the
 [RTI Connext license page](https://content.rti.com/l/983311/2025-07-25/q6729c).
 
 Keep the resulting `rti_license.dat` outside the container image and source
-control. The package's placeholder `rti_license.dat` is removed from the image.
-The Quick Start expects the valid, ignored file in the module root and bind
+control. The Quick Start expects the valid, ignored file in the module root and bind
 mounts it read-only over `${RTI_LICENSE_FILE}` for each Holoscan CLI run. This
 keeps the actual license out of the image while ensuring RTI can read it.
 

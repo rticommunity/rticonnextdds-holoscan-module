@@ -40,7 +40,6 @@ RUN rm -f /etc/apt/sources.list.d/kitware.list \
     && RTI_LICENSE_AGREEMENT_ACCEPTED=accepted apt-get update \
     && RTI_LICENSE_AGREEMENT_ACCEPTED=accepted apt-get install -y \
         "rti-connext-dds-${RTI_CONNEXT_VERSION}" \
-    && rm -f "/opt/rti.com/rti_connext_dds-${RTI_CONNEXT_VERSION}/rti_license.dat" \
     && rm -rf /var/lib/apt/lists/*
 
 # Keep the container self-contained for the Holoscan CLI workflow. The host
