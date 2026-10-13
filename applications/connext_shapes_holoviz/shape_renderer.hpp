@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <iostream>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -58,11 +59,13 @@ class ShapeRendererOp final : public ::holoscan::Operator<> {
     auto loan = frame.allocate_tensor(::holoscan::TensorLoanRequest{.shape = shape, .dtype = DLDataType{kDLUInt, 8U, 1U}});
     if (!loan) {
       if (loan.error().code == ::holoscan::ErrorCode::kResourceExhausted) return {};
+      std::cerr << "Canvas allocation failed: " << loan.error().message << '\n';
       return ::holoscan::make_unexpected(std::move(loan).error());
     }
     auto writer = loan->write_host();
     if (!writer) {
       if (writer.error().code == ::holoscan::ErrorCode::kResourceExhausted) return {};
+      std::cerr << "Canvas write failed: " << writer.error().message << '\n';
       return ::holoscan::make_unexpected(std::move(writer).error());
     }
     auto* pixels = writer->data_as<std::uint8_t>();
@@ -75,10 +78,17 @@ class ShapeRendererOp final : public ::holoscan::Operator<> {
     auto committed = std::move(*writer).commit();
     if (!committed) {
       if (committed.error().code == ::holoscan::ErrorCode::kResourceExhausted) return {};
+      std::cerr << "Canvas commit failed: " << committed.error().message << '\n';
       return ::holoscan::make_unexpected(std::move(committed).error());
     }
     auto emitted = frame.emit(std::move(*loan), ::holoscan::EmitOptions{.capture_time = context.activation_time()});
-    if (!emitted && emitted.error().code == ::holoscan::ErrorCode::kResourceExhausted) return {};
+    // This is a live preview: discard this frame if the display cannot keep up.
+    // Do not retry a moved loan or suppress transport/codec failures.
+    if (!emitted && (emitted.error().code == ::holoscan::ErrorCode::kResourceExhausted ||
+                     emitted.error().code == ::holoscan::ErrorCode::kBackpressured)) return {};
+    if (!emitted) std::cerr << "Canvas emit failed: code="
+                            << static_cast<int>(emitted.error().code) << " "
+                            << emitted.error().message << '\n';
     return emitted;
   }
 

@@ -124,6 +124,9 @@ int run(const Options& options) {
   while (!stop_requested.load(std::memory_order_acquire) && session.termination() == holoscan::RunTermination::kRunning) std::this_thread::sleep_for(100ms);
   session.request_stop();
   session.wait();
+  for (const auto& diagnostic : session.diagnostics()) {
+    std::cerr << ::holoscan::format_diagnostic(diagnostic, plan.graph()) << '\n';
+  }
   return session.diagnostics().empty() ? 0 : 1;
 }
 

@@ -53,4 +53,11 @@ if(RTI_HOLOSCAN_ENABLE_VISUAL_TESTS)
     PASS_REGULAR_EXPRESSION "connext_shapes_holoviz visual DDS test passed"
     TIMEOUT 45
     LABELS "integration;visual;docker")
+  add_test(NAME connext_shapes_holoviz_visual_shmem_integration
+    COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/run_connext_shapes_holoviz_visual.sh"
+      "${connext_shapes_holoviz_test_image}" "${connext_shapes_holoviz_capture_dir}/shmem" shmem)
+  set_tests_properties(connext_shapes_holoviz_visual_shmem_integration PROPERTIES
+    PASS_REGULAR_EXPRESSION "connext_shapes_holoviz visual DDS test passed"
+    TIMEOUT 45
+    LABELS "integration;visual;docker;shmem")
 endif()

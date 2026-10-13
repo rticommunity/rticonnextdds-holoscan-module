@@ -122,7 +122,24 @@ Success prints `connext_shapes_holoviz visual DDS test passed` and produces
 checks the expected colors and fails if either application exits or reports a
 Holoscan runtime callback error. It does not open a window on the host.
 
+To verify that the exchange works without UDP, run the same test with the
+SHMEM-only QoS profile:
+
+```bash
+HOST_BUILD_DIR="$HOST_BUILD_DIR" bash tests/run_connext_shapes_holoviz_visual.sh \
+  "$IMAGE" \
+  build/rticonnextdds-holoscan-module/test-artifacts/connext_shapes_holoviz/shmem \
+  shmem
+```
+
+Run it repeatedly to check that application restarts do not reuse stale HoloMQ
+resources. Both containers share Connext IPC/PID namespaces and keep their
+HoloMQ `/dev/shm` private. A full display queue drops a preview frame instead
+of terminating the application.
+
 The CTest target `connext_shapes_holoviz_visual_integration` invokes the same
 script, but is intentionally not enabled by default because it launches nested
 Docker containers. Use the direct command above for the predictable user
 workflow.
+The companion target `connext_shapes_holoviz_visual_shmem_integration` uses
+the SHMEM-only profile.

@@ -324,7 +324,22 @@ The Holoscan CLI profile uses `--ipc=host --pid=host` so Connext can use its
 SHMEM transport between containers and with applications on the host. On the
 validated Linux platforms, Connext uses System V shared memory; sharing the
 PID namespace also lets it identify the processes that own those resources.
-Manual Docker runs that need this communication should use both options.
+It also mounts a private 256 MiB tmpfs at `/dev/shm` for each container, keeping
+HoloMQ POSIX shared-memory resources separate across application instances and
+discarding those resources when the container is removed. Manual Docker runs
+for these examples should use:
+
+```text
+--ipc=host --pid=host --tmpfs=/dev/shm:rw,size=256m
+```
+
+Connext's System V SHMEM transport remains shared. This setup does not support
+HoloMQ POSIX shared-memory communication across containers; these examples use
+DDS for that communication. Larger applications may need a larger tmpfs.
+
+The visual renderer drops a frame when the display queue is full rather than
+terminating the application. Transport and codec errors still fail the run,
+and runtime diagnostics are printed on exit.
 
 These options share the host's IPC resources and process namespace. Use a
 deployment-specific container and transport configuration when stronger

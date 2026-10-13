@@ -3,6 +3,7 @@ set -euo pipefail
 
 image=${1:?image argument required}
 artifact_relative=${2:?artifact relative path required}
+transport_mode=${3:-default}
 host_workspace=${HOST_WORKSPACE:?HOST_WORKSPACE must be the host path to this repository}
 host_sdk_root=${HOST_SDK_ROOT:?HOST_SDK_ROOT must be the host path to the EA2 SDK}
 host_build_dir=${HOST_BUILD_DIR:-${host_workspace}/build/rticonnextdds-holoscan-module}
@@ -21,7 +22,9 @@ domain_id=$((100 + $$ % 100))
 mkdir -p "${artifact_dir}"
 rm -f "${artifact_dir}/local.png" "${artifact_dir}/external.png"
 # Share IPC and PID namespaces so Connext can use SHMEM across containers.
-common=(--runtime=nvidia --net host --ipc=host --pid=host -u "$(id -u):$(id -g)"
+# Isolate HoloMQ POSIX resources without isolating Connext System V IPC.
+common=(--runtime=nvidia --net host --ipc=host --pid=host
+  --tmpfs=/dev/shm:rw,size=256m -u "$(id -u):$(id -g)"
   -v "${host_workspace}:${workspace}"
   -v "${host_sdk_root}:${sdk}:ro"
   -v "${host_workspace}/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
@@ -29,6 +32,13 @@ common=(--runtime=nvidia --net host --ipc=host --pid=host -u "$(id -u):$(id -g)"
   -w "${container_build_dir}/applications/connext_shapes_holoviz"
   -e HOME="${workspace}" -e HOLOSCAN_LIB_PATH="${sdk}/lib"
   -e LD_LIBRARY_PATH="${sdk}/lib")
+case "${transport_mode}" in
+  default) ;;
+  shmem)
+    common+=(-v "${host_workspace}/tests/HoloscanConnextShmemQos.xml:${container_build_dir}/applications/connext_shapes_holoviz/HoloscanConnextQos.xml:ro")
+    ;;
+  *) echo "Unknown transport mode: ${transport_mode}" >&2; exit 2 ;;
+esac
 cleanup() {
   local names=("${local_name}" "${external_name}")
   local name
@@ -83,6 +93,11 @@ for capture in /artifacts/local.png /artifacts/external.png; do
   printf "%s\n" "${colors}" | grep -q "#FF0000"
   printf "%s\n" "${colors}" | grep -q "#000080"
 done
-! docker logs "${local_name}" 2>&1 | grep -q "RUNTIME_OPERATOR_CALLBACK_FAILED"
-! docker logs "${external_name}" 2>&1 | grep -q "RUNTIME_OPERATOR_CALLBACK_FAILED"
-echo "connext_shapes_holoviz visual DDS test passed; captures: ${host_artifact_dir}/local.png ${host_artifact_dir}/external.png"
+for name in "${local_name}" "${external_name}"; do
+  logs=$(docker logs "${name}" 2>&1)
+  if grep -Eq 'RUNTIME_(OPERATOR_CALLBACK_FAILED|LIFECYCLE_CALLBACK_FAILED|PORT_BINDING_UNAVAILABLE)' <<<"${logs}"; then
+    printf '%s\n' "${logs}" >&2
+    exit 1
+  fi
+done
+echo "connext_shapes_holoviz visual DDS test passed (${transport_mode}); captures: ${host_artifact_dir}/local.png ${host_artifact_dir}/external.png"

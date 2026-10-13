@@ -124,8 +124,10 @@ and place it at `${MODULE_ROOT}/build-ea2/rti_license.dat`.
 ### 6. Run the first DDS round trip
 
 For SHMEM communication between containers or with the host, add
-`--ipc=host --pid=host` to each Docker run. The CLI profile and visual test
-already include both options. The round-trip test below runs both processes
+`--ipc=host --pid=host` to each Docker run. For these examples, also add
+`--tmpfs=/dev/shm:rw,size=256m` to isolate HoloMQ POSIX shared-memory resources.
+The CLI profile and visual test already include all three options.
+The round-trip test below runs both processes
 inside one container, so it does not require sharing namespaces with the host.
 
 Run the typed Shapes integration test:
