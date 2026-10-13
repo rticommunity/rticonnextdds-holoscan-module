@@ -1,5 +1,6 @@
 [tool.holoscan]
 cuda = 13
 # Connext SHMEM across containers requires shared IPC and PID namespaces.
-docker-run-args = ["--ipc=host", "--pid=host"]
+# Keep HoloMQ POSIX shared memory private to each container.
+docker-run-args = ["--ipc=host", "--pid=host", "--tmpfs=/dev/shm:rw,size=256m"]
 base-images = { aarch64 = "holoscan-sdk-build-aarch64:v5.0.0-ea2", x86_64 = "holoscan-sdk-build-x86_64:v5.0.0-ea2" }
