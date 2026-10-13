@@ -178,6 +178,30 @@ The visual test is not a screenshot-only smoke test. It captures both windows,
 checks the expected black, red, and dark-blue pixels, verifies that both
 containers remain healthy, and leaves the PNG files available for inspection.
 
+## Container shared memory
+
+The CLI profile and visual tests use:
+
+```text
+--ipc=host --pid=host --tmpfs=/dev/shm:rw,size=256m
+```
+
+On the validated Linux setup, Connext uses System V shared memory. Sharing IPC
+and PID namespaces preserves its SHMEM transport between containers and with
+the host, including visibility of the processes that own those resources.
+
+The private 256 MiB `/dev/shm` isolates HoloMQ POSIX resources and discards them
+when a container is removed. These examples communicate across containers using
+DDS; this configuration does not support HoloMQ POSIX shared memory across
+containers. Larger applications may need a larger tmpfs.
+
+IPC and PID namespaces are still shared with the host. Deployments requiring
+stronger isolation need their own transport and container configuration.
+
+The visual renderer drops a preview frame when the display queue is full.
+Transport and codec errors still fail the run, and runtime diagnostics identify
+the failed operator on exit.
+
 ## Troubleshooting
 
 ### `libcuda.so.1` cannot be loaded

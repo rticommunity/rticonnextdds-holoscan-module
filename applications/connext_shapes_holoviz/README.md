@@ -132,10 +132,8 @@ HOST_BUILD_DIR="$HOST_BUILD_DIR" bash tests/run_connext_shapes_holoviz_visual.sh
   shmem
 ```
 
-Run it repeatedly to check that application restarts do not reuse stale HoloMQ
-resources. Both containers share Connext IPC/PID namespaces and keep their
-HoloMQ `/dev/shm` private. A full display queue drops a preview frame instead
-of terminating the application.
+Repeat this command to check that both applications continue to exchange shapes
+after restarts.
 
 The CTest target `connext_shapes_holoviz_visual_integration` invokes the same
 script, but is intentionally not enabled by default because it launches nested
