@@ -20,8 +20,8 @@ external_name="connext-holoviz-external-${$}"
 domain_id=$((100 + $$ % 100))
 mkdir -p "${artifact_dir}"
 rm -f "${artifact_dir}/local.png" "${artifact_dir}/external.png"
-# DDS uses host networking; each Holoviz process keeps its own HoloMQ IPC state.
-common=(--runtime=nvidia --net host -u "$(id -u):$(id -g)"
+# Share IPC and PID namespaces so Connext can use SHMEM across containers.
+common=(--runtime=nvidia --net host --ipc=host --pid=host -u "$(id -u):$(id -g)"
   -v "${host_workspace}:${workspace}"
   -v "${host_sdk_root}:${sdk}:ro"
   -v "${host_workspace}/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"

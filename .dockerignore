@@ -1,6 +1,8 @@
 .git
 .cache
 build
+build-*
 install
+install-*
+.venv-holoscan-cli
 rti_license.dat
-
