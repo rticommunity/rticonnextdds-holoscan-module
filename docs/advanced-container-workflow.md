@@ -46,6 +46,9 @@ export CUDA_ARCH=87       # set to the target GPU compute capability
 ./run build --arch "$HOLOSCAN_ARCH" --cudaarchs "$CUDA_ARCH" --sccache false
 ```
 
+For DGX Spark, use `CUDA_ARCH=120`. The EA2 SDK build filters `121`, which
+the GB10 reports, because it produces the same binary as `sm_120`.
+
 The validated build produces:
 
 - Docker image `holoscan-sdk-build-aarch64:v5.0.0-ea2`.
