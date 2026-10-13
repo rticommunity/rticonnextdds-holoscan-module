@@ -18,6 +18,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if(NOT DEFINED BUILD_ALL)
+  if(PROJECT_IS_TOP_LEVEL)
+    set(BUILD_ALL ON)
+  else()
+    set(BUILD_ALL OFF)
+  endif()
+endif()
+
+if(NOT COMMAND add_holohub_operator OR NOT COMMAND add_holohub_application)
+  include(cmake/HoloHubConfigHelpers.cmake)
+endif()
+
 find_package(Threads REQUIRED)
 find_package(holoscan 5.0.0 REQUIRED CONFIG)
 if(NOT DEFINED ENV{NDDSHOME} OR "$ENV{NDDSHOME}" STREQUAL "")
@@ -29,18 +41,12 @@ find_package(RTIConnextDDS 7.7.0 REQUIRED)
 include(CTest)
 option(RTI_HOLOSCAN_ENABLE_VISUAL_TESTS
   "Register the Docker/Xvfb Holoviz visual integration test" OFF)
+
 include(cmake/RTIConnextDDSGenerateIdl.cmake)
+add_subdirectory(applications)
+add_subdirectory(operators)
 
-add_library(rti_connext_dds_operators INTERFACE)
-add_library(RTIConnextDDSHoloscan::dds ALIAS rti_connext_dds_operators)
-target_compile_features(rti_connext_dds_operators INTERFACE cxx_std_20)
-target_include_directories(rti_connext_dds_operators INTERFACE
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/operators/dds/include>")
-target_link_libraries(rti_connext_dds_operators INTERFACE
-  holoscan::core RTIConnextDDS::cpp2_api Threads::Threads)
-
-add_subdirectory(applications/shapes_demo_flatbuffers)
-add_subdirectory(applications/connext_shapes_holoviz)
-if(BUILD_TESTING)
+if(PROJECT_IS_TOP_LEVEL AND BUILD_TESTING
+   AND APP_shapes_demo_flatbuffers AND APP_connext_shapes_holoviz)
   add_subdirectory(tests)
 endif()
