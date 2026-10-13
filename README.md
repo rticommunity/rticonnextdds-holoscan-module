@@ -318,6 +318,18 @@ the architecture selected for either platform.
 Do not install Holoscan or Connext on the host for this workflow. All build,
 test, and runtime dependencies are provided inside Docker.
 
+## Connext shared memory in containers
+
+The Holoscan CLI profile uses `--ipc=host --pid=host` so Connext can use its
+SHMEM transport between containers and with applications on the host. On the
+validated Linux platforms, Connext uses System V shared memory; sharing the
+PID namespace also lets it identify the processes that own those resources.
+Manual Docker runs that need this communication should use both options.
+
+These options share the host's IPC resources and process namespace. Use a
+deployment-specific container and transport configuration when stronger
+isolation is required; private IPC prevents Connext SHMEM between containers.
+
 ## RTI Connext license
 
 The source code in this repository is distributed under the RTI license in
