@@ -119,6 +119,12 @@ The module provides reusable C++ publish and subscribe operators for
 application-owned DDS types, CMake-driven Connext type generation from IDL,
 XML QoS configuration, and ready-to-run applications.
 
+![Distributed sensor nodes and Holoscan hosts exchanging samples through RTI Connext DDS](assets/connext-holoscan-distributed.svg)
+
+Holoscan applications on separate hosts exchange samples with distributed
+sensor nodes through Connext DDS. Sensor nodes publish through a DDS application
+or adapter. The databus represents peer-to-peer communication, with no central broker.
+
 ## Start here
 
 Choose the section that matches what you want to do:
