@@ -247,8 +247,7 @@ The development setup requires:
 - RTI Connext DDS `7.7.0`.
 - Docker with the NVIDIA Container Runtime.
 - A valid `rti_license.dat` for runtime tests.
-- An NVIDIA platform supported by Holoscan 5. IGX Orin is not supported
-  because it does not provide the required CUDA 13 platform.
+- An NVIDIA platform supported by Holoscan 5.
 
 The CLI selects the development image and Connext architecture for the host:
 
