@@ -271,8 +271,6 @@ of container images and source control.
 ## Current limitations
 
 - The module is distributed as source; prebuilt module packages are not yet available.
-- The EA3 workflow is validated on x86_64. ARM64 configuration is provided,
-  but requires validation with EA3 on the target device.
 - Python bindings are not included.
 - The FlatBuffers adapter is handwritten.
 - A native DDS External Topics provider is not implemented.
