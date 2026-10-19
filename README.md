@@ -44,6 +44,35 @@ This module is an experimental reference example intended for evaluation and
 feedback. It provides a starting point for applications that integrate RTI
 Connext DDS with NVIDIA Holoscan. **It is not recommended for production use.**
 
+## Requirements
+
+The development setup requires:
+
+- NVIDIA Holoscan SDK `5.0.0 EA3`.
+- CUDA `13` and an NVIDIA driver compatible with the EA3 SDK.
+- RTI Connext DDS `7.7.0`.
+- Docker with the NVIDIA Container Runtime.
+- A valid `rti_license.dat` for runtime tests.
+- An NVIDIA platform supported by Holoscan 5.
+
+The CLI selects the development image and Connext architecture for the host:
+
+| Architecture | SDK development image | Connext architecture |
+| --- | --- | --- |
+| x86_64 | `holoscan-sdk-dev-x86_64:v5.0.0-ea3` | `x64Linux4gcc8.5.0` |
+| aarch64 | `holoscan-sdk-dev-aarch64:v5.0.0-ea3` | `armv8Linux4gcc8.5.0` |
+
+## RTI Connext license
+
+The source code in this repository is distributed under the RTI license in
+`LICENSE` and does not include an RTI Connext runtime license. Request and
+download an activation key from the
+[RTI Connext license page](https://content.rti.com/l/983311/2025-07-25/q6729c).
+
+Place `rti_license.dat` in the repository root. This file is ignored by Git,
+and the example commands mount it read-only at runtime. Keep the license out
+of container images and source control.
+
 ## Quick start: Shapes with Holoviz
 
 The fastest way to verify the integration is the `connext_shapes_holoviz`
@@ -82,9 +111,6 @@ python3 -m venv .venv-holoscan-cli
   --extra-index-url https://pypi.nvidia.com \
   'holoscan-cli==5.0.0rc3'
 ```
-
-Obtain a valid `rti_license.dat` as described in [RTI Connext license](#rti-connext-license)
-and place it in the repository root.
 
 Open two terminals in the repository root and activate the virtual environment
 in each terminal:
@@ -237,35 +263,6 @@ companion Holoscan schema, and the integration tests together.
 
 For a step-by-step example, including the CMake code-generation helper and the
 two supported payload-boundary choices, see [Using your own IDL](docs/using-your-own-idl.md).
-
-## Requirements
-
-The development setup requires:
-
-- NVIDIA Holoscan SDK `5.0.0 EA3`.
-- CUDA `13` and an NVIDIA driver compatible with the EA3 SDK.
-- RTI Connext DDS `7.7.0`.
-- Docker with the NVIDIA Container Runtime.
-- A valid `rti_license.dat` for runtime tests.
-- An NVIDIA platform supported by Holoscan 5.
-
-The CLI selects the development image and Connext architecture for the host:
-
-| Architecture | SDK development image | Connext architecture |
-| --- | --- | --- |
-| x86_64 | `holoscan-sdk-dev-x86_64:v5.0.0-ea3` | `x64Linux4gcc8.5.0` |
-| aarch64 | `holoscan-sdk-dev-aarch64:v5.0.0-ea3` | `armv8Linux4gcc8.5.0` |
-
-## RTI Connext license
-
-The source code in this repository is distributed under the RTI license in
-`LICENSE` and does not include an RTI Connext runtime license. Request and
-download an activation key from the
-[RTI Connext license page](https://content.rti.com/l/983311/2025-07-25/q6729c).
-
-Place `rti_license.dat` in the repository root. This file is ignored by Git,
-and the example commands mount it read-only at runtime. Keep the license out
-of container images and source control.
 
 ## Current limitations
 
