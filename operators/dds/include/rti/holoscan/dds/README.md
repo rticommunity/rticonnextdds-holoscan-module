@@ -1,6 +1,6 @@
 # Public DDS operator headers
 
-This directory contains the prototype public C++ API:
+This directory contains the public C++ API:
 
 | Header | API | Documentation |
 |---|---|---|

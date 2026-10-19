@@ -1,11 +1,11 @@
 # Using your own IDL
 
 This guide adds one generated Connext type to a Holoscan application. Complete
-the [EA2 quick start](../README.md#quick-start-shapes-with-holoviz) before using
+the [EA3 quick start](../README.md#quick-start-shapes-with-holoviz) before using
 it.
 
-The current repository is an in-tree prototype. The CMake helper is consumed
-from this source tree; it is not yet available through an installed package.
+The CMake helper is consumed from this source tree; it is not available
+through an installed package.
 
 This guide describes the integration points that belong in your application.
 The module does not translate an arbitrary IDL directly into a Holoscan graph:
@@ -112,9 +112,10 @@ This is simple but intentionally exposes only `sequence` to the graph. The other
 ### Option B: a typed FlatBuffers Holoscan payload
 
 Use this when Holoscan operators must access `robot_id`, `x`, `y`, `mode`, or
-other fields directly. Define a companion `.fbs` schema, generate its EA2
+other fields directly. Define a companion `.fbs` schema, generate its EA3
 schema traits with `holoscan_add_flatbuffer_schema()`, and map every field in
-the adapter.
+the adapter. The schema root needs a four-byte `file_identifier`; supply
+`MAX_SERIALIZED_SIZE` to bound the generated payload.
 
 The complete reference is the
 [typed Shapes example](../applications/shapes_demo_flatbuffers/README.md).

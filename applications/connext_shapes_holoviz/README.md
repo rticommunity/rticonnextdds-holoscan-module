@@ -18,7 +18,7 @@ remains wire-compatible with RTI Shapes Demo.
 
 Start with `main.cpp` for CLI options and graph connections. Then read
 `bouncing_shape_source.hpp` for local generation, `shape_adapter.hpp` for the
-FlatBuffers to DDS mapping, and `shape_renderer.hpp` for the RGBA frame sent to
+FlatBuffers to DDS mapping, and `shape_renderer.hpp` for the RGBA8 `ImageT` sent to
 Holoviz. `shape_display_config.hpp` holds the example's logical canvas and render scale.
 
 ## Behavior
@@ -38,10 +38,9 @@ Holoviz. `shape_display_config.hpp` holds the example's logical canvas and rende
 
 ```bash
 export HOLOSCAN_CLI=./.venv-holoscan-cli/bin/holoscan
-export HOLOSCAN_SDK_ROOT=/path/to/holoscan-sdk/install-aarch64
 $HOLOSCAN_CLI build-container connext_shapes_holoviz
-$HOLOSCAN_CLI build connext_shapes_holoviz --no-docker-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
-$HOLOSCAN_CLI run connext_shapes_holoviz headless_square --no-docker-build --no-local-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+$HOLOSCAN_CLI build connext_shapes_holoviz --no-docker-build
+$HOLOSCAN_CLI run connext_shapes_holoviz headless_square --no-docker-build --no-local-build
 ```
 
 Use `square`, `circle`, or `triangle` instead of the headless modes when a real display is available. The normal modes open a Holoviz window on that display; the headless modes create a virtual Xvfb display inside the container. To demonstrate DDS exchange, run `square` and `circle` in separate terminals or run one side against RTI Shapes Demo. The CLI mounts the ignored project-root `rti_license.dat` into the container.
@@ -95,21 +94,18 @@ Prepare the CLI image and the host paths first:
 
 ```bash
 export MODULE_ROOT="$PWD"
-export HOLOSCAN_SDK_ROOT="$MODULE_ROOT/holoscan-sdk/install-aarch64"
 export HOST_WORKSPACE="$MODULE_ROOT"
-export HOST_SDK_ROOT="$HOLOSCAN_SDK_ROOT"
 test -s "$HOST_WORKSPACE/rti_license.dat"
-test -f "$HOST_SDK_ROOT/lib/cmake/holoscan/holoscan-full-config.cmake"
-$HOLOSCAN_CLI build connext_shapes_holoviz \
-  --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+$HOLOSCAN_CLI build connext_shapes_holoviz --parallel 2 \
+  --img rticonnextdds-holoscan-module:ea3
 export HOST_BUILD_DIR="$MODULE_ROOT/build/connext_shapes_holoviz"
 test -x "$HOST_BUILD_DIR/applications/connext_shapes_holoviz/connext_shapes_holoviz"
 ```
 
-Select the EA2 image explicitly and run the visual test directly:
+Select the image built for the test explicitly and run the visual test directly:
 
 ```bash
-IMAGE=rticonnextdds-holoscan-module-connext_shapes_holoviz:ea-2
+IMAGE=rticonnextdds-holoscan-module:ea3
 docker image inspect "$IMAGE" >/dev/null
 
 HOST_BUILD_DIR="$HOST_BUILD_DIR" bash tests/run_connext_shapes_holoviz_visual.sh \
