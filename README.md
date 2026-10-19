@@ -193,16 +193,6 @@ connection. The Holoviz example is one application that
 generates a local shape, publishes it, subscribes to the three Shapes topics,
 and visualizes both local and received samples.
 
-## Supported versions
-
-| Component | Version |
-| --- | --- |
-| Module version | `0.1.0` |
-| RTI Connext DDS | `7.7.0` |
-| NVIDIA Holoscan SDK | `5.0.0 EA3` |
-| CUDA | `13` |
-| Validated EA3 architecture | `x86_64` |
-
 ## Concepts and terminology
 
 ### DDS terminology
