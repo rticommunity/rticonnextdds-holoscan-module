@@ -28,3 +28,4 @@ table Shape {
 }
 
 root_type Shape;
+file_identifier "RTSH";

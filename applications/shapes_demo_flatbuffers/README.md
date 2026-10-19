@@ -79,7 +79,7 @@ DDS sequence and fields.
 
 | File | Purpose |
 |---|---|
-| `shape.fbs` | Holoscan EA2 FlatBuffers payload schema |
+| `shape.fbs` | Holoscan EA3 FlatBuffers payload schema |
 | `shape_adapter.hpp` | Complete field mapping between `ShapeT` and `ShapeTypeExtended` |
 | `testing/shape_test_operators.hpp` | Finite source and subscriber validation sink |
 | `testing/shape_sample_verifier.hpp` | Expected sample sequence and completion checks |
@@ -126,56 +126,24 @@ The application:
 5. Validates all fields, detects duplicates, and exits after exactly 20
    expected samples.
 
-## Run the applications manually
-
 ## Holoscan CLI workflow
 
 `metadata.json` exposes `publisher` and `subscriber` modes as first-class Holoscan CLI applications. The CLI builds and runs them in Docker:
 
 ```bash
 export HOLOSCAN_CLI=./.venv-holoscan-cli/bin/holoscan
-export HOLOSCAN_SDK_ROOT=/path/to/holoscan-sdk/install-aarch64
 $HOLOSCAN_CLI build-container shapes_demo_flatbuffers
-$HOLOSCAN_CLI build shapes_demo_flatbuffers --no-docker-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+$HOLOSCAN_CLI build shapes_demo_flatbuffers --no-docker-build
 ```
 
 Run `subscriber` first and `publisher` in a second terminal:
 
 ```bash
-$HOLOSCAN_CLI run shapes_demo_flatbuffers subscriber --no-docker-build --no-local-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
-$HOLOSCAN_CLI run shapes_demo_flatbuffers publisher --no-docker-build --no-local-build --local-sdk-root "$HOLOSCAN_SDK_ROOT"
+$HOLOSCAN_CLI run shapes_demo_flatbuffers subscriber --no-docker-build --no-local-build
+$HOLOSCAN_CLI run shapes_demo_flatbuffers publisher --no-docker-build --no-local-build
 ```
 
 The CLI mounts the ignored project-root `rti_license.dat` into the application container.
-
-Complete the [root container quick start](../../README.md#quick-start-shapes-with-holoviz)
-and retain its `MODULE_ROOT` and `HOLOSCAN_INSTALL` variables.
-
-Open two Bash terminals. Start the subscriber in terminal 1:
-
-```bash
-docker run --rm --runtime=nvidia --network=host \
-  --user "$(id -u):$(id -g)" \
-  -e RTI_LICENSE_FILE=/workspace/rticonnextdds-holoscan-module/build-ea2/rti_license.dat \
-  -v "${HOLOSCAN_INSTALL}:/opt/holoscan:ro" \
-  -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
-  -w /workspace/rticonnextdds-holoscan-module/build-ea2/applications/shapes_demo_flatbuffers \
-  rticonnextdds-holoscan-module:ea2 \
-  ./connext_shapes_demo_flatbuffers_subscriber
-```
-
-Then start the publisher in terminal 2:
-
-```bash
-docker run --rm --runtime=nvidia --network=host \
-  --user "$(id -u):$(id -g)" \
-  -e RTI_LICENSE_FILE=/workspace/rticonnextdds-holoscan-module/build-ea2/rti_license.dat \
-  -v "${HOLOSCAN_INSTALL}:/opt/holoscan:ro" \
-  -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
-  -w /workspace/rticonnextdds-holoscan-module/build-ea2/applications/shapes_demo_flatbuffers \
-  rticonnextdds-holoscan-module:ea2 \
-  ./connext_shapes_demo_flatbuffers_publisher
-```
 
 The subscriber prints each reconstructed shape. Success ends with:
 
@@ -184,21 +152,10 @@ DDS Shapes publisher sent 20 ShapeTypeExtended samples
 DDS Shapes subscriber received 20 ShapeTypeExtended samples
 ```
 
-## Run the automated integration
+## Tests
 
-```bash
-docker run --rm --runtime=nvidia --network=host \
-  --user "$(id -u):$(id -g)" \
-  -e RTI_LICENSE_FILE=/workspace/rticonnextdds-holoscan-module/build-ea2/rti_license.dat \
-  -v "${HOLOSCAN_INSTALL}:/opt/holoscan:ro" \
-  -v "${MODULE_ROOT}:/workspace/rticonnextdds-holoscan-module" \
-  -w /workspace/rticonnextdds-holoscan-module \
-  rticonnextdds-holoscan-module:ea2 \
-  ctest --test-dir build-ea2 -R connext_shapes_demo_flatbuffers_integration --output-on-failure
-```
-
-The test launches both applications as separate processes and fails on a
-missing, duplicate, reordered, or incorrectly reconstructed sample.
+See the [testing guide](../../tests/README.md#run-ctest) for the automated
+DDS round-trip and adapter tests.
 
 ## Interoperate with RTI Shapes Demo
 
@@ -207,7 +164,7 @@ RTI Shapes Demo. The easiest visual check is:
 
 1. Start RTI Shapes Demo as a reader on domain 0.
 2. Ensure it displays the `Square` topic.
-3. Run `connext_shapes_demo_flatbuffers_publisher` using the command above.
+3. Run the `publisher` mode with the Holoscan CLI command above.
 4. Observe the published shapes in Shapes Demo.
 
 The supplied Holoscan subscriber is an automated validator: it expects the
@@ -221,7 +178,7 @@ arbitrary valid samples.
 1. Generate the application DDS type with `rti_holoscan_add_idl()`.
 2. Define a companion FlatBuffers schema representing the fields required by
    the Holoscan graph.
-3. Generate EA2 schema traits with `holoscan_add_flatbuffer_schema()`.
+3. Generate EA3 schema traits with `holoscan_add_flatbuffer_schema()`.
 4. Implement and test both adapter directions.
 5. Instantiate the publisher and subscriber with the generated DDS type and
    adapter.

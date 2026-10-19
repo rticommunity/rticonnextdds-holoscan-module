@@ -14,13 +14,7 @@ set(shapes_demo_flatbuffers_generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated
 holoscan_add_flatbuffer_schema(TARGET shapes_demo_payload_generated
   SCHEMAS shape.fbs INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}"
   OUTPUT_DIR "${shapes_demo_flatbuffers_generated_dir}" BFBS_EMBED
-  TRAITS_HEADER shape_schema_traits.hpp TRAITS_SCHEMA shape.fbs
-  TRAITS_ROOT_TYPE rti::holoscan::shapes::Shape
-  TRAITS_NATIVE_TYPE rti::holoscan::shapes::ShapeT
-  TRAITS_BINARY_SCHEMA_TYPE rti::holoscan::shapes::ShapeBinarySchema
-  TRAITS_PACKAGE_NAMESPACE rti_holoscan_shapes::package
-  TRAITS_CANONICAL_NAME rti.holoscan.shapes.Shape TRAITS_SCHEMA_VERSION 1
-  TRAITS_MAX_SERIALIZED_SIZE 512)
+  MAX_SERIALIZED_SIZE 512)
 
 set(shapes_demo_flatbuffers_example_dir "${CMAKE_CURRENT_BINARY_DIR}")
 configure_file(HoloscanConnextQos.xml "${shapes_demo_flatbuffers_example_dir}/HoloscanConnextQos.xml" COPYONLY)

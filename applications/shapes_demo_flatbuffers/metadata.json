@@ -20,7 +20,7 @@
     },
     "platforms": ["x86_64", "aarch64"],
     "tags": ["DDS", "RTI Connext", "FlatBuffers", "Shapes Demo"],
-    "ranking": 2,
+    "ranking": 3,
     "requirements": {
       "operators": [{"name": "dds", "version": "0.1.0"}]
     },

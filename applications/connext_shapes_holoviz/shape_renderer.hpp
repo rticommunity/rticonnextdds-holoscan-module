@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <iostream>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -22,6 +23,7 @@
 #include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/tensor_contract.hpp>
 #include <holoscan/core/tensor_output_loan.hpp>
+#include <holoscan/sensor_io/sensor_schema_package.hpp>
 
 #include "shape_display_config.hpp"
 #include "shape_schema_traits.hpp"
@@ -45,7 +47,8 @@ class ShapeRendererOp final : public ::holoscan::Operator<> {
     image.representation.rank = 3U;
     image.bounds = ::holoscan::tensor_bounds(static_cast<std::size_t>(kCanvas) * kCanvas * 4U);
     image.storage = ::holoscan::TensorOutputStorage::kRuntimePool;
-    spec.output(frame, "frame").produces_tensor(image);
+    spec.output(frame, "frame").produces_tensor(image).payload_options(
+        ::holoscan::PayloadOptions{.schema = ::holoscan::schema_identity<::holoscan::schema::ImageT>()});
   }
 
   [[nodiscard]] ::holoscan::expected<void, ::holoscan::Error> compute(
@@ -58,11 +61,13 @@ class ShapeRendererOp final : public ::holoscan::Operator<> {
     auto loan = frame.allocate_tensor(::holoscan::TensorLoanRequest{.shape = shape, .dtype = DLDataType{kDLUInt, 8U, 1U}});
     if (!loan) {
       if (loan.error().code == ::holoscan::ErrorCode::kResourceExhausted) return {};
+      std::cerr << "Canvas allocation failed: " << loan.error().message << '\n';
       return ::holoscan::make_unexpected(std::move(loan).error());
     }
     auto writer = loan->write_host();
     if (!writer) {
       if (writer.error().code == ::holoscan::ErrorCode::kResourceExhausted) return {};
+      std::cerr << "Canvas write failed: " << writer.error().message << '\n';
       return ::holoscan::make_unexpected(std::move(writer).error());
     }
     auto* pixels = writer->data_as<std::uint8_t>();
@@ -75,15 +80,27 @@ class ShapeRendererOp final : public ::holoscan::Operator<> {
     auto committed = std::move(*writer).commit();
     if (!committed) {
       if (committed.error().code == ::holoscan::ErrorCode::kResourceExhausted) return {};
+      std::cerr << "Canvas commit failed: " << committed.error().message << '\n';
       return ::holoscan::make_unexpected(std::move(committed).error());
     }
-    auto emitted = frame.emit(std::move(*loan), ::holoscan::EmitOptions{.capture_time = context.activation_time()});
-    if (!emitted && emitted.error().code == ::holoscan::ErrorCode::kResourceExhausted) return {};
+    ::holoscan::schema::ImageT descriptor;
+    descriptor.width = kCanvas;
+    descriptor.height = kCanvas;
+    descriptor.encoding = ::holoscan::schema::ImageEncoding_RGBA8;
+    auto emitted = frame.emit_tensor(std::move(*loan), descriptor,
+        ::holoscan::EmitOptions{.capture_time = context.activation_time()});
+    // This is a live preview: discard this frame if the display cannot keep up.
+    // Do not retry a moved loan or suppress transport/codec failures.
+    if (!emitted && (emitted.error().code == ::holoscan::ErrorCode::kResourceExhausted ||
+                     emitted.error().code == ::holoscan::ErrorCode::kBackpressured)) return {};
+    if (!emitted) std::cerr << "Canvas emit failed: code="
+                            << static_cast<int>(emitted.error().code) << " "
+                            << emitted.error().message << '\n';
     return emitted;
   }
 
   ::holoscan::Input<ShapePayload> local, square, circle, triangle;
-  ::holoscan::Output<::holoscan::Tensor> frame;
+  ::holoscan::Output<::holoscan::schema::ImageT> frame;
 
  private:
   static void update(::holoscan::Input<ShapePayload>& input, std::optional<ShapePayload>& target) {

@@ -28,7 +28,7 @@ set_tests_properties(connext_shapes_adapter_test PROPERTIES
   PASS_REGULAR_EXPRESSION "Shapes adapter preserved all ShapeTypeExtended fields" TIMEOUT 30)
 
 set(shapes_demo_flatbuffers_example_dir "${CMAKE_BINARY_DIR}/applications/shapes_demo_flatbuffers")
-set(connext_shapes_holoviz_test_image "rticonnextdds-holoscan-module-rticonnextdds-holoscan-module:ea-2"
+set(connext_shapes_holoviz_test_image "rticonnextdds-holoscan-module:ea3"
   CACHE STRING "Container image used by the isolated HoloViz visual CTest")
 set(connext_shapes_holoviz_capture_dir "build/rticonnextdds-holoscan-module/test-artifacts/connext_shapes_holoviz")
 
@@ -53,4 +53,11 @@ if(RTI_HOLOSCAN_ENABLE_VISUAL_TESTS)
     PASS_REGULAR_EXPRESSION "connext_shapes_holoviz visual DDS test passed"
     TIMEOUT 45
     LABELS "integration;visual;docker")
+  add_test(NAME connext_shapes_holoviz_visual_shmem_integration
+    COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/run_connext_shapes_holoviz_visual.sh"
+      "${connext_shapes_holoviz_test_image}" "${connext_shapes_holoviz_capture_dir}/shmem" shmem)
+  set_tests_properties(connext_shapes_holoviz_visual_shmem_integration PROPERTIES
+    PASS_REGULAR_EXPRESSION "connext_shapes_holoviz visual DDS test passed"
+    TIMEOUT 45
+    LABELS "integration;visual;docker;shmem")
 endif()
