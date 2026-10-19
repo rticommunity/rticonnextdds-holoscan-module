@@ -28,7 +28,7 @@ set_tests_properties(connext_shapes_adapter_test PROPERTIES
   PASS_REGULAR_EXPRESSION "Shapes adapter preserved all ShapeTypeExtended fields" TIMEOUT 30)
 
 set(shapes_demo_flatbuffers_example_dir "${CMAKE_BINARY_DIR}/applications/shapes_demo_flatbuffers")
-set(connext_shapes_holoviz_test_image "rticonnextdds-holoscan-module-rticonnextdds-holoscan-module:ea-2"
+set(connext_shapes_holoviz_test_image "rticonnextdds-holoscan-module:ea3"
   CACHE STRING "Container image used by the isolated HoloViz visual CTest")
 set(connext_shapes_holoviz_capture_dir "build/rticonnextdds-holoscan-module/test-artifacts/connext_shapes_holoviz")
 

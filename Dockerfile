@@ -11,15 +11,15 @@
 #  the software.
 # *******************************************************************************/
 
-# EA2 development image. The default base is built from NVIDIA's private
-# Engineering Release source with its official `./run build` workflow.
-ARG BASE_IMAGE=holoscan-sdk-build-aarch64:v5.0.0-ea2
+# SDK development image built from NVIDIA Holoscan 5 EA3 with
+# the official `./run build_dev_image` workflow.
+ARG BASE_IMAGE=holoscan-sdk-dev-aarch64:v5.0.0-ea3
 ARG TARGETARCH
 FROM ${BASE_IMAGE} AS connext-base
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG RTI_CONNEXT_VERSION=7.7.0
-ARG HOLOSCAN_CLI_VERSION=5.0.0a1
+ARG HOLOSCAN_CLI_VERSION=5.0.0rc3
 
 RUN rm -f /etc/apt/sources.list.d/kitware.list \
     && apt-get update \
@@ -43,8 +43,8 @@ RUN rm -f /etc/apt/sources.list.d/kitware.list \
     && rm -rf /var/lib/apt/lists/*
 
 # Keep the container self-contained for the Holoscan CLI workflow. The host
-# CLI creates this image and invokes `holoscan` again inside it. EA2 currently
-# publishes the CLI as a pre-release, so pin the exact EA2 version here.
+# CLI creates this image and invokes `holoscan` again inside it. Pin the
+# Holoscan 5 pre-release CLI used to validate this workflow.
 RUN python3 -m pip install --no-cache-dir --pre \
         --extra-index-url https://pypi.nvidia.com \
         "holoscan-cli==${HOLOSCAN_CLI_VERSION}"

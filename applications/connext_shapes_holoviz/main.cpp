@@ -23,10 +23,8 @@
 #include <holoscan/core/connection_options.hpp>
 #include <holoscan/core/graph.hpp>
 #include <holoscan/core/run.hpp>
-#include <holoscan/operators/holoviz/holoviz_op.hpp>
+#include <holoscan/visualization/holoviz_op.hpp>
 #include <holoscan/time/realtime_clock.hpp>
-#include <holoviz/layer_desc.hpp>
-#include <holoviz/sink_desc.hpp>
 
 #include "ShapeType.hpp"
 #include "bouncing_shape_source.hpp"
@@ -105,16 +103,16 @@ int run(const Options& options) {
   const auto circle = graph.op<Subscriber>("dds-circle-subscriber", endpoint(options.domain_id, "Circle"));
   const auto triangle = graph.op<Subscriber>("dds-triangle-subscriber", endpoint(options.domain_id, "Triangle"));
   const auto renderer = graph.op<ShapeRendererOp>("shape-renderer", options.publish_topic);
-  ::holoviz::LayerStack layers;
-  layers.add_image_layer("frame", ::holoviz::ImageLayerDesc{.format = ::holoviz::ImageFormat::kR8G8B8A8Unorm, .max_width = kCanvas, .max_height = kCanvas});
-  const auto holoviz = graph.op<holoscan::holoviz::HolovizOp>("holoviz", std::move(layers), ::holoviz::WindowSinkDesc{.title = "Connext Shapes + Holoviz", .width = options.width, .height = options.height}, 16ms, 100ms);
+  ::holoscan::visualization::LayerStack layers;
+  layers.add_image_layer("frame", ::holoscan::visualization::ImageLayerDesc{.format = ::holoscan::visualization::ImageFormat::kR8G8B8A8Unorm, .max_width = kCanvas, .max_height = kCanvas});
+  const auto holoviz = graph.op<holoscan::visualization::HolovizOp>("holoviz", std::move(layers), ::holoscan::visualization::WindowSinkDesc{.title = "Connext Shapes + Holoviz", .width = options.width, .height = options.height}, holoscan::visualization::ClockTrigger{.period = 16ms}, 100ms);
   const holoscan::ConnectionOptions flow{.queue_depth = 32U};
   graph.add_flow(source->output, publisher->input, flow);
   graph.add_flow(source->output, renderer->local, flow);
   graph.add_flow(square->output, renderer->square, flow);
   graph.add_flow(circle->output, renderer->circle, flow);
   graph.add_flow(triangle->output, renderer->triangle, flow);
-  graph.add_flow(renderer->frame, holoviz->layer_input(0), flow);
+  graph.add_flow(renderer->frame, holoviz->image_layer_input(0), flow);
   graph.partition("connext-shapes-holoviz").include_all();
   graph.set_default_clock(graph.add_clock<holoscan::RealtimeClock>("clock"));
   const auto plan = holoscan::compile(graph);

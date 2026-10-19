@@ -23,6 +23,7 @@
 #include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/tensor_contract.hpp>
 #include <holoscan/core/tensor_output_loan.hpp>
+#include <holoscan/sensor_io/sensor_schema_package.hpp>
 
 #include "shape_display_config.hpp"
 #include "shape_schema_traits.hpp"
@@ -46,7 +47,8 @@ class ShapeRendererOp final : public ::holoscan::Operator<> {
     image.representation.rank = 3U;
     image.bounds = ::holoscan::tensor_bounds(static_cast<std::size_t>(kCanvas) * kCanvas * 4U);
     image.storage = ::holoscan::TensorOutputStorage::kRuntimePool;
-    spec.output(frame, "frame").produces_tensor(image);
+    spec.output(frame, "frame").produces_tensor(image).payload_options(
+        ::holoscan::PayloadOptions{.schema = ::holoscan::schema_identity<::holoscan::schema::ImageT>()});
   }
 
   [[nodiscard]] ::holoscan::expected<void, ::holoscan::Error> compute(
@@ -81,7 +83,12 @@ class ShapeRendererOp final : public ::holoscan::Operator<> {
       std::cerr << "Canvas commit failed: " << committed.error().message << '\n';
       return ::holoscan::make_unexpected(std::move(committed).error());
     }
-    auto emitted = frame.emit(std::move(*loan), ::holoscan::EmitOptions{.capture_time = context.activation_time()});
+    ::holoscan::schema::ImageT descriptor;
+    descriptor.width = kCanvas;
+    descriptor.height = kCanvas;
+    descriptor.encoding = ::holoscan::schema::ImageEncoding_RGBA8;
+    auto emitted = frame.emit_tensor(std::move(*loan), descriptor,
+        ::holoscan::EmitOptions{.capture_time = context.activation_time()});
     // This is a live preview: discard this frame if the display cannot keep up.
     // Do not retry a moved loan or suppress transport/codec failures.
     if (!emitted && (emitted.error().code == ::holoscan::ErrorCode::kResourceExhausted ||
@@ -93,7 +100,7 @@ class ShapeRendererOp final : public ::holoscan::Operator<> {
   }
 
   ::holoscan::Input<ShapePayload> local, square, circle, triangle;
-  ::holoscan::Output<::holoscan::Tensor> frame;
+  ::holoscan::Output<::holoscan::schema::ImageT> frame;
 
  private:
   static void update(::holoscan::Input<ShapePayload>& input, std::optional<ShapePayload>& target) {
