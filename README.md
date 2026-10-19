@@ -257,9 +257,7 @@ two supported payload-boundary choices, see [Using your own IDL](docs/using-your
 ## Current limitations
 
 - The module is distributed as source; prebuilt module packages are not yet available.
-- Python bindings are not included.
 - The FlatBuffers adapter is handwritten.
-- A native DDS External Topics provider is not implemented.
 
 ## Ownership and contact
 
