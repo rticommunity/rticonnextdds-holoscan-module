@@ -158,7 +158,7 @@ Choose the section that matches what you want to do:
 | Goal | Read this |
 | --- | --- |
 | Build the repository and run a first test | [Shapes + Holoviz quick start](#quick-start-shapes-with-holoviz) |
-| Build manually, run CTest, or troubleshoot containers | [Advanced container workflow](docs/advanced-container-workflow.md) |
+| Run CTest, visual tests, or troubleshoot test failures | [Testing guide](tests/README.md) |
 | Understand the DDS and Holoscan terminology | [Concepts and terminology](#concepts-and-terminology) |
 | Understand the publisher operator | [Publisher operator](docs/operators/publisher.md) |
 | Understand the subscriber operator | [Subscriber operator](docs/operators/subscriber.md) |

@@ -30,8 +30,6 @@ Holoviz. `shape_display_config.hpp` holds the example's logical canvas and rende
   drawn once and external shapes receive a dark-blue outline.
 - It runs until `Ctrl+C` or `SIGTERM`, then requests a clean Holoscan stop.
 
-## Run in a container
-
 ## Holoscan CLI workflow
 
 `metadata.json` exposes `square`, `circle`, `triangle`, `headless_square`, and `headless_circle` as first-class Holoscan CLI modes:
@@ -70,70 +68,7 @@ A second instance can publish an external red circle:
 It may instead be paired with RTI Shapes Demo on the same domain. External
 `Square`, `Circle`, and `Triangle` samples appear with a dark-blue perimeter.
 
-## Headless visual test
+## Tests
 
-This is an opt-in integration test, separate from the normal CTest suite. It
-starts two application containers, creates one Xvfb display in each container,
-captures both Holoviz windows, and checks that each image contains the local
-black square, the external red circle, and the dark-blue external outline. No
-physical monitor or `DISPLAY` variable is required.
-
-The test does require Docker orchestration access from the shell that launches
-it. In particular, the shell must have the Docker CLI, access to the Docker
-daemon, and the host paths used below must be visible to that daemon. A failure
-to meet those requirements is an infrastructure failure, not a Holoviz image
-validation failure.
-
-Captures are kept in:
-
-```text
-build/rticonnextdds-holoscan-module/test-artifacts/connext_shapes_holoviz/
-```
-
-Prepare the CLI image and the host paths first:
-
-```bash
-export MODULE_ROOT="$PWD"
-export HOST_WORKSPACE="$MODULE_ROOT"
-test -s "$HOST_WORKSPACE/rti_license.dat"
-$HOLOSCAN_CLI build connext_shapes_holoviz --parallel 2 \
-  --img rticonnextdds-holoscan-module:ea3
-export HOST_BUILD_DIR="$MODULE_ROOT/build/connext_shapes_holoviz"
-test -x "$HOST_BUILD_DIR/applications/connext_shapes_holoviz/connext_shapes_holoviz"
-```
-
-Select the image built for the test explicitly and run the visual test directly:
-
-```bash
-IMAGE=rticonnextdds-holoscan-module:ea3
-docker image inspect "$IMAGE" >/dev/null
-
-HOST_BUILD_DIR="$HOST_BUILD_DIR" bash tests/run_connext_shapes_holoviz_visual.sh \
-  "$IMAGE" \
-  build/rticonnextdds-holoscan-module/test-artifacts/connext_shapes_holoviz
-```
-
-Success prints `connext_shapes_holoviz visual DDS test passed` and produces
-`local.png` and `external.png` in the artifact directory. The script also
-checks the expected colors and fails if either application exits or reports a
-Holoscan runtime callback error. It does not open a window on the host.
-
-To verify that the exchange works without UDP, run the same test with the
-SHMEM-only QoS profile:
-
-```bash
-HOST_BUILD_DIR="$HOST_BUILD_DIR" bash tests/run_connext_shapes_holoviz_visual.sh \
-  "$IMAGE" \
-  build/rticonnextdds-holoscan-module/test-artifacts/connext_shapes_holoviz/shmem \
-  shmem
-```
-
-Repeat this command to check that both applications continue to exchange shapes
-after restarts.
-
-The CTest target `connext_shapes_holoviz_visual_integration` invokes the same
-script, but is intentionally not enabled by default because it launches nested
-Docker containers. Use the direct command above for the predictable user
-workflow.
-The companion target `connext_shapes_holoviz_visual_shmem_integration` uses
-the SHMEM-only profile.
+See the [testing guide](../../tests/README.md#headless-visual-tests) for the
+two-container visual test, SHMEM-only verification, and saved captures.
