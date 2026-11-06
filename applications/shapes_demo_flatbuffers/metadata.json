@@ -1,5 +1,5 @@
 {
-  "$schema": "urn:holohub:application:v1",
+  "$schema": "urn:holoscan:application:v1",
   "application": {
     "name": "Connext DDS Shapes Demo with FlatBuffers",
     "description": "Holoscan Shapes application using generated DDS types and a FlatBuffers payload boundary",
