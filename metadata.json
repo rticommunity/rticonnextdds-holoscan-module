@@ -1,7 +1,7 @@
 {
-  "$schema": "holoscan/module/v2",
+  "$schema": "urn:holoscan:module:v2",
   "module": {
-    "name": "rticonnextdds-holoscan-module",
+    "name": "holoscan-rti-connext-dds",
     "version": "0.1.0",
     "description": "RTI Connext DDS operators and reference applications for NVIDIA Holoscan 5",
     "authors": [
